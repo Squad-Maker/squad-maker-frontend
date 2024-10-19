@@ -1,4 +1,4 @@
-name: Lint Check
+name: CI
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
 
       - name: Lint
         run: |
-          npx eslint src --ext .js,.jsx,.ts,.tsx --fix
+          npm run lint
 
       - name: Check commit message
         uses: wagoid/commitlint-github-action@v6
