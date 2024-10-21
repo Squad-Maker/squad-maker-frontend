@@ -164,7 +164,6 @@ const CommandEmpty = forwardRef<
     <div
       ref={forwardedRef}
       className={cn('py-6 text-center text-sm', className)}
-      cmdk-empty=""
       role="presentation"
       {...props}
     />
@@ -324,7 +323,7 @@ const MultipleSelector = React.forwardRef<
         }
       }
 
-      void exec()
+      exec()
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus])
 
@@ -350,7 +349,7 @@ const MultipleSelector = React.forwardRef<
         }
       }
 
-      void exec()
+      exec()
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus])
 
@@ -521,7 +520,9 @@ const MultipleSelector = React.forwardRef<
               }}
               onFocus={(event) => {
                 setOpen(true)
-                triggerSearchOnFocus && onSearch?.(debouncedSearchTerm)
+                if (triggerSearchOnFocus) {
+                  onSearch?.(debouncedSearchTerm)
+                }
                 inputProps?.onFocus?.(event)
               }}
               placeholder={
