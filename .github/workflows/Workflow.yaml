@@ -47,4 +47,4 @@ jobs:
       - name: Check commit message
         uses: wagoid/commitlint-github-action@v6
         with:
-          configFile: ./.commitlintrc.ts
+          configFile: ./commitlint.config.mjs
