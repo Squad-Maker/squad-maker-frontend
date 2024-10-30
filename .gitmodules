@@ -1,0 +1,4 @@
+[submodule "src/grpc/proto"]
+	path = src/grpc/proto
+	url = https://github.com/Squad-Maker/squad-maker-api.git
+	branch = main

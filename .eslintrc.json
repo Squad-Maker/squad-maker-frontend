@@ -7,5 +7,6 @@
   ],
   "rules": {
     "simple-import-sort/imports": "error"
-  }
+  },
+  "ignorePatterns": ["public/sw.js", "public/load-sw.js"]
 }
