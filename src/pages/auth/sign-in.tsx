@@ -1,10 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { SquareUserRound } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
+import { signIn } from '@/api/sign-in'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +14,7 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { useToast } from '@/components/ui/use-toast'
 
 const signInForm = z.object({
-  login: z.string().min(1, { message: 'Informe o nome de usuário.' }),
+  username: z.string().min(1, { message: 'Informe o nome de usuário.' }),
   password: z.string().min(1, { message: 'Informe a senha.' }),
 })
 
@@ -31,24 +33,31 @@ export function SignIn() {
     resolver: zodResolver(signInForm),
   })
 
-  async function handleSignIn(data: SignInForm) {
-    try {
-      // TODO
-      console.log(data)
+  const { mutateAsync: authenticate } = useMutation({
+    mutationFn: signIn,
+  })
 
-      navigate('/')
-    } catch (error) {
-      toast({
+  async function handleSignIn({ username, password }: SignInForm) {
+    try {
+      const accessToken = await authenticate({ username, password })
+
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken)
+
+        return navigate('/', { replace: true })
+      }
+    } catch {
+      return toast({
         variant: 'destructive',
         title: 'Acessar',
-        description: `Oops! Ocorreu um erro ao tentar acessar. + ${error}`,
+        description: 'Usuário ou senha inválidos.',
       })
     }
   }
 
   return (
     <>
-      <Helmet title="Login" />
+      <Helmet title="Entrar" />
 
       <div className="p-8">
         <div className="flex w-[400px] flex-col gap-6">
@@ -62,10 +71,12 @@ export function SignIn() {
 
           <form onSubmit={handleSubmit(handleSignIn)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="login">Usuário</Label>
-              <Input id="login" type="text" {...register('login')} />
-              {errors.login && (
-                <p className="text-sm text-red-500">{errors.login.message}</p>
+              <Label htmlFor="username">Usuário</Label>
+              <Input id="username" type="text" {...register('username')} />
+              {errors.username && (
+                <p className="text-sm text-red-500">
+                  {errors.username.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">

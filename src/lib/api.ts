@@ -122,7 +122,7 @@ export class GrpcImpl {
   }
 }
 
-export const API_URL = `${window.location.protocol}//${window.location.hostname}:9080` // `https://${window.location.host}/api`
+export const API_URL = `${window.location.protocol}//177.155.113.189:19080` // `https://${window.location.host}/api`
 
 export const grpcImpl = new GrpcImpl(API_URL, {
   transport: grpc.XhrTransport({
