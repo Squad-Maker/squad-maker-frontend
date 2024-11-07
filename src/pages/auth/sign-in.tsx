@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { SquareUserRound } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -61,14 +60,6 @@ export function SignIn() {
 
       <div className="p-8">
         <div className="flex w-[400px] flex-col gap-6">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <SquareUserRound className="size-8 text-primary" />
-            <h1 className="text-2xl font-semibold tracking-tight">Acessar</h1>
-            <p className="text-sm text-muted-foreground">
-              Gerenciador de equipes
-            </p>
-          </div>
-
           <form onSubmit={handleSubmit(handleSignIn)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Usuário</Label>
@@ -94,13 +85,13 @@ export function SignIn() {
             </Button>
             <div className="space-y-4 pt-4 text-muted-foreground text-sm">
               <p>
-                Acadêmicos: insira no campo de usuário a letra{' '}
+                <strong>Acadêmicos:</strong> insira no campo de usuário a letra{' '}
                 <strong>&quot;a&quot;</strong> seguido do seu número de RA. (ex:
                 a1234567) e utilize a mesma senha do sistema acadêmico.
               </p>
               <p>
-                Servidores: informe seu nome de usuário e senha já utilizados
-                nos sistemas da UTFPR.
+                <strong>Servidores:</strong> informe seu nome de usuário e senha
+                já utilizados nos sistemas da UTFPR.
               </p>
             </div>
           </form>
