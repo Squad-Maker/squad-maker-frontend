@@ -59,8 +59,16 @@ export function SignIn() {
       <Helmet title="Entrar" />
 
       <div className="p-8">
-        <div className="flex w-[400px] flex-col gap-6">
+        <div className="flex w-[350px] flex-col gap-6">
           <form onSubmit={handleSubmit(handleSignIn)} className="space-y-4">
+            <div className="space-y-2 mb-4">
+              <h1 className="text-3xl text-center font-semibold">
+                Seja bem-vindo!
+              </h1>
+              <p className="text-muted-foreground text-center text-sm">
+                Entre com seus dados para acessar sua conta.
+              </p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="username">Usuário</Label>
               <Input id="username" type="text" {...register('username')} />
