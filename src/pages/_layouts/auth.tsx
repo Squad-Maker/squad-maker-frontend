@@ -1,19 +1,12 @@
 import { SearchCode } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import illustration from '@/assets/sign-in-illustration.svg'
 import illustrationDark from '@/assets/sign-in-illustration-dark.svg'
+import { useTheme } from '@/components/theme/theme-provider'
 
 export function AuthLayout() {
-  const [theme, setTheme] = useState('')
-
-  useEffect(() => {
-    const storedTheme = localStorage.getItem('squad-maker-theme')
-    if (storedTheme) {
-      setTheme(storedTheme)
-    }
-  }, [])
+  const { theme } = useTheme()
 
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-2">
