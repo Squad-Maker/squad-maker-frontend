@@ -1,9 +1,20 @@
 import { SearchCode } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
-import illustration from '@/assets/sign-in-user-illustration.svg'
+import illustration from '@/assets/sign-in-illustration.svg'
+import illustrationDark from '@/assets/sign-in-illustration-dark.svg'
 
 export function AuthLayout() {
+  const [theme, setTheme] = useState('')
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('squad-maker-theme')
+    if (storedTheme) {
+      setTheme(storedTheme)
+    }
+  }, [])
+
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-2">
       <div className="relative flex-col justify-between py-10 p-20 md:flex">
@@ -33,7 +44,11 @@ export function AuthLayout() {
       </div>
 
       <div className="hidden md:flex justify-center">
-        <img className="max-w-xl" src={illustration} alt="Sign illustration" />
+        <img
+          className="w-60"
+          src={theme === 'light' ? illustration : illustrationDark}
+          alt="Sign illustration"
+        />
       </div>
     </div>
   )
