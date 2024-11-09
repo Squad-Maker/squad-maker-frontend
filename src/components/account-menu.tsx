@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useSignOut } from '@/hooks/auth'
 
 export function AccountMenu() {
   const { theme, setTheme } = useTheme()
-
+  const { signOutFn, isSigningOut } = useSignOut()
   const isLoadingUser = false
 
   return (
@@ -50,6 +51,7 @@ export function AccountMenu() {
 
           <DropdownMenuItem asChild disabled={false}>
             <button
+              type="button"
               className="w-full"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
@@ -61,12 +63,16 @@ export function AccountMenu() {
 
           <DropdownMenuItem
             asChild
-            disabled={false}
+            disabled={isSigningOut}
             className="text-rose-500 dark:text-rose-400"
           >
-            <button className="w-full" onClick={() => null}>
+            <button
+              type="button"
+              className="w-full"
+              onClick={() => signOutFn()}
+            >
               <LogOut className="mr-2 size-4" />
-              <span>Sair</span>
+              <span>{isSigningOut ? 'Saindo...' : 'Sair'}</span>
             </button>
           </DropdownMenuItem>
         </DropdownMenuContent>
