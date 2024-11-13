@@ -1,5 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, LogOut, Moon, Sun } from 'lucide-react'
 
+import { profile } from '@/api/profile'
 import { useTheme } from '@/components/theme/theme-provider'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,7 +19,11 @@ import { useSignOut } from '@/hooks/auth'
 export function AccountMenu() {
   const { theme, setTheme } = useTheme()
   const { signOutFn, isSigningOut } = useSignOut()
-  const isLoadingUser = false
+
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: profile,
+  })
 
   return (
     <Sheet>
@@ -34,15 +40,17 @@ export function AccountMenu() {
 
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="flex flex-col">
-            {isLoadingUser ? (
+            {isLoading ? (
               <div className="space-y-1.5">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-3 w-24" />
               </div>
             ) : (
               <>
-                <span>Usuário</span>
-                <span className="font-normal text-muted-foreground">RA</span>
+                <span>{user?.name}</span>
+                <span className="font-normal text-muted-foreground">
+                  {user?.email}
+                </span>
               </>
             )}
           </DropdownMenuLabel>

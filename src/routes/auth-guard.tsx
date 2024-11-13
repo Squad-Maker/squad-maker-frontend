@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { BrowserHeaders } from 'browser-headers'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { authServiceClient } from '@/lib/api'
+import { profile } from '@/api/profile'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -18,26 +17,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     isLoading,
   } = useQuery({
     queryKey: ['me'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken')
-
-      if (!token) {
-        throw new Error('No token found')
-      }
-
-      try {
-        const metadata = new BrowserHeaders({
-          authorization: `Bearer ${token}`,
-        })
-
-        const response = await authServiceClient.me({}, metadata)
-
-        return response
-      } catch (error) {
-        localStorage.removeItem('accessToken')
-        throw error
-      }
-    },
+    queryFn: profile,
     retry: false,
   })
 
