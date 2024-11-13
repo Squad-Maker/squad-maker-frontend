@@ -7,12 +7,23 @@ import { StudentForm } from '@/pages/app/student-form'
 import { SignIn } from '@/pages/auth/sign-in'
 import { Error } from '@/pages/error'
 
+import { AuthGuard } from './auth-guard'
+
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <AuthGuard>
+        <AppLayout />
+      </AuthGuard>
+    ),
     errorElement: <Error />,
-    children: [{ path: '/', element: <StudentForm /> }],
+    children: [
+      {
+        path: '/',
+        element: <StudentForm />,
+      },
+    ],
   },
   {
     path: '/',

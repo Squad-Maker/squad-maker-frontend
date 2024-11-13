@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
+import { LoaderCircleIcon } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -21,7 +22,6 @@ type SignInForm = z.infer<typeof signInForm>
 
 export function SignIn() {
   const navigate = useNavigate()
-
   const { toast } = useToast()
 
   const {
@@ -89,7 +89,11 @@ export function SignIn() {
             </div>
 
             <Button disabled={isSubmitting} className="w-full" type="submit">
-              Entrar
+              {isSubmitting ? (
+                <LoaderCircleIcon className="animate-spin" />
+              ) : (
+                'Entrar'
+              )}
             </Button>
             <div className="space-y-4 pt-4 text-muted-foreground text-sm">
               <p>
