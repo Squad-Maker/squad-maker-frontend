@@ -3,7 +3,10 @@ import { grpc } from '@improbable-eng/grpc-web'
 import { BrowserHeaders } from 'browser-headers'
 import { Observable, share } from 'rxjs'
 
-import { AuthServiceClientImpl } from '@/grpc/generated/auth/service'
+import {
+  AuthServiceClientImpl,
+  GrpcWebImpl,
+} from '@/grpc/generated/auth/service'
 
 interface UnaryMethodDefinitionishR
   extends grpc.UnaryMethodDefinition<any, any> {
@@ -122,7 +125,7 @@ export class GrpcImpl {
   }
 }
 
-export const API_URL = `${window.location.protocol}//${window.location.hostname}:9080` // `https://${window.location.host}/api`
+export const API_URL = `${window.location.protocol}//177.155.113.189:19080` // `https://${window.location.host}/api`
 
 export const grpcImpl = new GrpcImpl(API_URL, {
   transport: grpc.XhrTransport({
@@ -131,4 +134,6 @@ export const grpcImpl = new GrpcImpl(API_URL, {
   streamingTransport: grpc.WebsocketTransport(),
 })
 
-export const authServiceClient = new AuthServiceClientImpl(grpcImpl)
+export const authServiceClient = new AuthServiceClientImpl(
+  new GrpcWebImpl(API_URL, {}),
+)

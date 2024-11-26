@@ -1,5 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, LogOut, Moon, Sun } from 'lucide-react'
 
+import { profile } from '@/api/profile'
 import { useTheme } from '@/components/theme/theme-provider'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,11 +14,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useSignOut } from '@/hooks/auth'
 
 export function AccountMenu() {
   const { theme, setTheme } = useTheme()
+  const { signOutFn, isSigningOut } = useSignOut()
 
-  const isLoadingUser = false
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: profile,
+  })
 
   return (
     <Sheet>
@@ -33,15 +40,17 @@ export function AccountMenu() {
 
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="flex flex-col">
-            {isLoadingUser ? (
+            {isLoading ? (
               <div className="space-y-1.5">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-3 w-24" />
               </div>
             ) : (
               <>
-                <span>Usuário</span>
-                <span className="font-normal text-muted-foreground">RA</span>
+                <span>{user?.name}</span>
+                <span className="font-normal text-muted-foreground">
+                  {user?.email}
+                </span>
               </>
             )}
           </DropdownMenuLabel>
@@ -50,6 +59,7 @@ export function AccountMenu() {
 
           <DropdownMenuItem asChild disabled={false}>
             <button
+              type="button"
               className="w-full"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
@@ -61,12 +71,16 @@ export function AccountMenu() {
 
           <DropdownMenuItem
             asChild
-            disabled={false}
+            disabled={isSigningOut}
             className="text-rose-500 dark:text-rose-400"
           >
-            <button className="w-full" onClick={() => null}>
+            <button
+              type="button"
+              className="w-full"
+              onClick={() => signOutFn()}
+            >
               <LogOut className="mr-2 size-4" />
-              <span>Sair</span>
+              <span>{isSigningOut ? 'Saindo...' : 'Sair'}</span>
             </button>
           </DropdownMenuItem>
         </DropdownMenuContent>
