@@ -5,7 +5,7 @@ import errorDark from '@/assets/errorDark.svg'
 import { useTheme } from '@/components/theme/theme-provider'
 import { Button } from '@/components/ui/button'
 
-export function Error() {
+export function ErrorPage() {
   const error = useRouteError() as Error
   const { theme } = useTheme()
 

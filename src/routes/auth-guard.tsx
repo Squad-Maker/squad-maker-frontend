@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
+import { LoaderCircleIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { profile } from '@/api/profile'
+import { StudentLayout } from '@/pages/_layouts/student'
+import { TeacherLayout } from '@/pages/_layouts/teacher'
 
-interface AuthGuardProps {
-  children: React.ReactNode
-}
-
-export function AuthGuard({ children }: AuthGuardProps) {
+export function AuthGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
 
   const {
@@ -30,7 +29,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   if (isLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
+        <LoaderCircleIcon className="animate-spin" />
       </div>
     )
   }
@@ -39,5 +38,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return null
   }
 
-  return <>{children}</>
+  if (user.type === 1) {
+    return <TeacherLayout>{children}</TeacherLayout>
+  }
+
+  if (user.type === 2) {
+    return <StudentLayout>{children}</StudentLayout>
+  }
 }

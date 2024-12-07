@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { LoaderCircleIcon } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
+import { profile } from '@/api/profile'
 import { signIn } from '@/api/sign-in'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +37,18 @@ export function SignIn() {
     mutationFn: signIn,
   })
 
+  const { mutateAsync: me } = useMutation({
+    mutationFn: profile,
+    onSuccess: (profile) => {
+      if (profile?.type === 1) {
+        return navigate('/teacher', { replace: true })
+      }
+      if (profile?.type === 2) {
+        return navigate('/student', { replace: true })
+      }
+    },
+  })
+
   async function handleSignIn({ username, password }: SignInForm) {
     try {
       const accessToken = await authenticate({ username, password })
@@ -43,7 +56,7 @@ export function SignIn() {
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken)
 
-        return navigate('/', { replace: true })
+        me()
       }
     } catch {
       return toast({
