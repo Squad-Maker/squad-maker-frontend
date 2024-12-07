@@ -1,7 +1,13 @@
+import { Helmet } from 'react-helmet-async'
+
 export function TeacherHome() {
   return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <h1 className="text-white">TeacherHome</h1>
-    </div>
+    <>
+      <Helmet title="Painel" />
+
+      <div className="p-8">
+        <span>Teacher</span>
+      </div>
+    </>
   )
 }
