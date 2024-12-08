@@ -1,36 +1,39 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import { AppLayout } from '@/pages/_layouts/app'
 import { AuthLayout } from '@/pages/_layouts/auth'
 import { NotFound } from '@/pages/404'
-import { StudentForm } from '@/pages/app/student-form'
 import { SignIn } from '@/pages/auth/sign-in'
-import { Error } from '@/pages/error'
+import { ErrorPage } from '@/pages/error'
+import { StudentHome } from '@/pages/student/home'
+import { TeacherHome } from '@/pages/teacher/home'
 
 import { AuthGuard } from './auth-guard'
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: '/student',
     element: (
       <AuthGuard>
-        <AppLayout />
+        <StudentHome />
       </AuthGuard>
     ),
-    errorElement: <Error />,
-    children: [
-      {
-        path: '/',
-        element: <StudentForm />,
-      },
-    ],
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/teacher',
+    element: (
+      <AuthGuard>
+        <TeacherHome />
+      </AuthGuard>
+    ),
+    errorElement: <ErrorPage />,
   },
   {
     path: '/',
     element: <AuthLayout />,
     children: [
       {
-        path: '/sign-in',
+        path: 'sign-in',
         element: <SignIn />,
       },
     ],
