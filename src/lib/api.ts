@@ -3,10 +3,7 @@ import { grpc } from '@improbable-eng/grpc-web'
 import { BrowserHeaders } from 'browser-headers'
 import { Observable, share } from 'rxjs'
 
-import {
-  AuthServiceClientImpl,
-  GrpcWebImpl,
-} from '@/grpc/generated/auth/service'
+import { AuthServiceClientImpl } from '@/grpc/generated/auth/service'
 import { SquadServiceClientImpl } from '@/grpc/generated/squad/service'
 
 interface UnaryMethodDefinitionishR
@@ -142,10 +139,6 @@ export const grpcImpl = new GrpcImpl(API_URL, {
   streamingTransport: grpc.WebsocketTransport(),
 })
 
-export const authServiceClient = new AuthServiceClientImpl(
-  new GrpcWebImpl(API_URL, {}),
-)
+export const authServiceClient = new AuthServiceClientImpl(grpcImpl)
 
-export const squadServiceClient = new SquadServiceClientImpl(
-  new GrpcWebImpl(API_URL, {}),
-)
+export const squadServiceClient = new SquadServiceClientImpl(grpcImpl)

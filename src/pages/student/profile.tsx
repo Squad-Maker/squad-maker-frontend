@@ -30,6 +30,7 @@ import {
   TooltipProvider,
 } from '@/components/ui/tooltip'
 import { CompetenceLevel } from '@/grpc/generated/squad/competence-level'
+import { GetStudentSubjectDataResponse } from '@/grpc/generated/squad/method'
 import { Position } from '@/grpc/generated/squad/position'
 import { squadServiceClient } from '@/lib/api'
 
@@ -59,6 +60,8 @@ export function StudentProfile() {
   const [competenceLevels, setCompetenceLevels] = useState<CompetenceLevel[]>(
     [],
   )
+
+  const resposta: GetStudentSubjectDataResponse = {}
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
