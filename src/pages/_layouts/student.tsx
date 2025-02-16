@@ -1,4 +1,5 @@
 import { PanelsTopLeft, User } from 'lucide-react'
+import { ReactNode } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { AppSidebar } from '@/components/app-sidebar'
@@ -30,7 +31,11 @@ const studentMenus = [
   },
 ]
 
-export function StudentLayout() {
+interface StudentLayoutProps {
+  children: ReactNode
+}
+
+export function StudentLayout({ children }: StudentLayoutProps) {
   const location = useLocation()
 
   const getBreadcrumbTitle = (path: string) => {
@@ -68,6 +73,7 @@ export function StudentLayout() {
           </div>
         </header>
         <main>
+          {children}
           <Outlet />{' '}
         </main>
       </SidebarInset>

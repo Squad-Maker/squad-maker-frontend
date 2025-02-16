@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/select'
 
 export function StudentProject() {
-  const [projects, setProjects] = useState([
+  const [projects] = useState([
     {
       id: 1,
       name: 'Projeto Alpha',
