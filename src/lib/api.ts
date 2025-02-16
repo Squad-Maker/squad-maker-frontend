@@ -7,6 +7,7 @@ import {
   AuthServiceClientImpl,
   GrpcWebImpl,
 } from '@/grpc/generated/auth/service'
+import { SquadServiceClientImpl } from '@/grpc/generated/squad/service'
 
 interface UnaryMethodDefinitionishR
   extends grpc.UnaryMethodDefinition<any, any> {
@@ -54,10 +55,14 @@ export class GrpcImpl {
     const maybeCombinedMetadata =
       metadata && this.options.metadata
         ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata
+          ...this.options?.metadata.headersMap,
+          ...metadata?.headersMap,
+        })
+        : metadata || this.options.metadata || new grpc.Metadata()
+    maybeCombinedMetadata.set(
+      'authorization',
+      `Bearer ${localStorage.getItem('accessToken')}`,
+    )
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -94,7 +99,10 @@ export class GrpcImpl {
       const upStream = () => {
         const request = { ..._request, ...methodDesc.requestType }
         const meta = metadata ?? new grpc.Metadata()
-        meta.set('authorization', `Bearer ${localStorage.getItem('token')}`)
+        meta.set(
+          'authorization',
+          `Bearer ${localStorage.getItem('accessToken')}`,
+        )
         const client = grpc.invoke(methodDesc, {
           host: this.host,
           request,
@@ -135,5 +143,9 @@ export const grpcImpl = new GrpcImpl(API_URL, {
 })
 
 export const authServiceClient = new AuthServiceClientImpl(
+  new GrpcWebImpl(API_URL, {}),
+)
+
+export const squadServiceClient = new SquadServiceClientImpl(
   new GrpcWebImpl(API_URL, {}),
 )

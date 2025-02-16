@@ -5,6 +5,8 @@ import { NotFound } from '@/pages/404'
 import { SignIn } from '@/pages/auth/sign-in'
 import { ErrorPage } from '@/pages/error'
 import { StudentHome } from '@/pages/student/home'
+import { StudentProfile } from '@/pages/student/profile'
+import { StudentProject } from '@/pages/student/projects'
 import { TeacherHome } from '@/pages/teacher/home'
 
 import { AuthGuard } from './auth-guard'
@@ -18,6 +20,20 @@ export const router = createBrowserRouter([
       </AuthGuard>
     ),
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: '',
+        element: <StudentHome />,
+      },
+      {
+        path: 'profile',
+        element: <StudentProfile />,
+      },
+      {
+        path: 'project',
+        element: <StudentProject />,
+      },
+    ],
   },
   {
     path: '/teacher',
