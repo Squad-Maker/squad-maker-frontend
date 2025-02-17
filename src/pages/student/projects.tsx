@@ -1,5 +1,5 @@
 import { EllipsisVertical, Settings, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 
 import ModalSaving from '@/components/modal-saving'
@@ -27,31 +27,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Project } from '@/grpc/generated/squad/project'
+import { squadServiceClient } from '@/lib/api'
 
 export function StudentProject() {
-  const [projects] = useState([
-    {
-      id: 1,
-      name: 'Projeto Alpha',
-      description: 'Um projeto inovador para otimização de processos.',
-      image: 'https://picsum.photos/300/200?random=1',
-    },
-    {
-      id: 2,
-      name: 'Projeto Beta',
-      description: 'Uma plataforma para conectar freelancers a clientes.',
-      image: 'https://picsum.photos/300/200?random=2',
-    },
-    {
-      id: 3,
-      name: 'Projeto Gamma',
-      description: 'Aplicativo de controle financeiro pessoal.',
-      image: 'https://picsum.photos/300/200?random=3',
-    },
-  ])
+  const [projects, setProjects] = useState<Project[]>([])
   const [openDialog, setOpenDialog] = useState(false)
   const [status, setStatus] = useState('loading')
   const [isOpen, setIsOpen] = useState(false)
+
+  async function loadProjects() {
+    const resp = squadServiceClient.readAllProjects({
+      pagination: {
+        limit: 100,
+      },
+    })
+    setProjects((await resp).data)
+  }
+
+  useEffect(() => {
+    loadProjects()
+  }, [])
 
   function onSubmit() {
     console.log('Formulário enviado:')
@@ -82,7 +78,7 @@ export function StudentProject() {
             >
               <img
                 className="items-center rounded-md w-full"
-                src={project.image}
+                src=""
                 alt="Imagem erro 404"
               />
               <div className="p-2">
@@ -135,9 +131,11 @@ export function StudentProject() {
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">Alpha</SelectItem>
-                    <SelectItem value="dark">Beta</SelectItem>
-                    <SelectItem value="system">Gamma</SelectItem>
+                    {projects.map((project, key) => (
+                      <SelectItem key={key} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
