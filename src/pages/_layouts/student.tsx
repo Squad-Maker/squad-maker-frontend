@@ -1,5 +1,6 @@
 import { PanelsTopLeft, User } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { ReactNode } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import {
@@ -20,17 +21,21 @@ import {
 const studentMenus = [
   {
     name: 'Projetos',
-    url: '#',
+    url: 'project',
     icon: PanelsTopLeft,
   },
   {
     name: 'Perfil',
-    url: '#',
+    url: 'profile',
     icon: User,
   },
 ]
 
-export function StudentLayout({ children }: { children: React.ReactNode }) {
+interface StudentLayoutProps {
+  children: ReactNode
+}
+
+export function StudentLayout({ children }: StudentLayoutProps) {
   const location = useLocation()
 
   const getBreadcrumbTitle = (path: string) => {
@@ -55,7 +60,7 @@ export function StudentLayout({ children }: { children: React.ReactNode }) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/student/home">Início</BreadcrumbLink>
+                  <BreadcrumbLink href="/student">Início</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
@@ -67,7 +72,10 @@ export function StudentLayout({ children }: { children: React.ReactNode }) {
             </Breadcrumb>
           </div>
         </header>
-        <main>{children}</main>
+        <main>
+          {children}
+          <Outlet />{' '}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )
