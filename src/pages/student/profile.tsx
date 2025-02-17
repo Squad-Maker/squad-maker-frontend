@@ -1,11 +1,13 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import InputMask from 'react-input-mask'
 import { z } from 'zod'
 
+import { profile } from '@/api/profile'
 import ModalSaving from '@/components/modal-saving'
 import { Button } from '@/components/ui/button'
 import {
@@ -37,9 +39,6 @@ import { squadServiceClient } from '@/lib/api'
 const course = [{ value: 'es', label: 'Engenharia de Software' }]
 
 const formSchema = z.object({
-  firstName: z.string().min(2).max(50),
-  surname: z.string().min(2).max(50),
-  email: z.string().email('Digite um email válido.'),
   telefone: z
     .string()
     .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Informe um telefone válido.'),
@@ -63,12 +62,15 @@ export function StudentProfile() {
 
   // const resposta: GetStudentSubjectDataResponse = {}
 
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: profile,
+    retry: false,
+  })
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: 'Franco',
-      surname: 'Colaopinto',
-      email: 'francocolaopinto@f1.com',
       telefone: '(46) 9 1234-5678',
       course: 'es',
       periodo: 4,
@@ -117,44 +119,32 @@ export function StudentProfile() {
   return (
     <>
       <Helmet title="Perfil" />
-      <div className="p-8">
-        <p className="text-3xl font-semibold">Perfil</p>
-        <span className="font-extralight">
+      <div className="px-12 py-4">
+        <p className="text-3xl pb-2 font-semibold">Perfil</p>
+        <span className="text-muted-foreground">
           Edite seus dados para que possamos encontrar o time ideal para você!
         </span>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 p-8 ml-[5%]"
+            className="space-y-4 py-8"
           >
             <p className="font-semibold text-xl">Informações pessoais</p>
+            <FormField
+              control={form.control}
+              name="name"
+              disabled
+              render={({ field }) => (
+                <FormItem className="md:col-span-3">
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input placeholder={user?.name} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-3">
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Lucas" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="surname"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-3">
-                    <FormLabel>Sobrenome</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Oliveira" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="email"
@@ -163,8 +153,9 @@ export function StudentProfile() {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
+                        disabled
                         type="email"
-                        placeholder="lucas.oliveira@gmail.com"
+                        placeholder={user?.email}
                         {...field}
                       />
                     </FormControl>
@@ -205,6 +196,7 @@ export function StudentProfile() {
                       <FormControl>
                         <div className="w-full space-y-1">
                           <Select
+                            disabled
                             value={field.value}
                             onValueChange={(value) => field.onChange(value)}
                           >
