@@ -52,9 +52,9 @@ export class GrpcImpl {
     const maybeCombinedMetadata =
       metadata && this.options.metadata
         ? new BrowserHeaders({
-          ...this.options?.metadata.headersMap,
-          ...metadata?.headersMap,
-        })
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
         : metadata || this.options.metadata || new grpc.Metadata()
     maybeCombinedMetadata.set(
       'authorization',
