@@ -75,9 +75,9 @@ export function StudentProfile() {
       linkedin: 'linkedin.com/in/franco-cola',
       habilidadesDominio: 'Python, PHP, Javascript',
       ferramentasDominio: 'VSCode, Git, Docker',
-      seniority: 'pleno',
-      cargo1: 'backend',
-      cargo2: 'fullstack',
+      seniority: 'Pleno',
+      cargo1: 'Backend',
+      cargo2: 'Fullstack',
     },
   })
 
@@ -95,7 +95,7 @@ export function StudentProfile() {
     }, 2000)
   }
 
-  async function test() {
+  async function load() {
     const resp = await squadServiceClient.readAllPositions({
       pagination: {
         limit: 100,
@@ -111,7 +111,7 @@ export function StudentProfile() {
   }
 
   useEffect(() => {
-    test()
+    load()
   }, [])
 
   return (
