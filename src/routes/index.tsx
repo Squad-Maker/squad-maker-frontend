@@ -13,6 +13,20 @@ import { AuthGuard } from './auth-guard'
 
 export const router = createBrowserRouter([
   {
+    path: '/',
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '',
+        element: <SignIn />,
+      },
+      {
+        path: 'sign-in',
+        element: <SignIn />,
+      },
+    ],
+  },
+  {
     path: '/student',
     element: (
       <AuthGuard>
@@ -43,16 +57,6 @@ export const router = createBrowserRouter([
       </AuthGuard>
     ),
     errorElement: <ErrorPage />,
-  },
-  {
-    path: '/',
-    element: <AuthLayout />,
-    children: [
-      {
-        path: 'sign-in',
-        element: <SignIn />,
-      },
-    ],
   },
   {
     path: '*',

@@ -1,5 +1,3 @@
-'use client'
-
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -27,7 +25,7 @@ export function NavMain({
         {menus.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton tooltip={item.name}>
-              <Link to={item.url} className="flex items-center gap-2">
+              <Link to={item.url} className="flex items-center gap-2 w-full">
                 <item.icon />
                 <span>{item.name}</span>
               </Link>

@@ -67,7 +67,7 @@ export function StudentProject() {
   return (
     <>
       <Helmet title="Projetos" />
-      <div className="p-8">
+      <div className="px-12 py-4">
         <p className="text-3xl font-semibold">Projetos</p>
 
         <div className="space-y-4 p-8 ml-[1%] flex justify-around flex-wrap">
