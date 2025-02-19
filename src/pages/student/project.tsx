@@ -96,7 +96,11 @@ export function StudentProject() {
 
   const { mutate: requestTeamRevaluationFn } = useMutation({
     mutationFn: async (data: FormValues) => {
-      await requestTeamRevaluation(data)
+      await requestTeamRevaluation({
+        projectId: data.projectId,
+        reason: data.reason,
+        desiredProjectId: data.desiredProjectId || undefined,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['studentProjects'] })
