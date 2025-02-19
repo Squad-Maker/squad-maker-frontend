@@ -10,6 +10,7 @@ import { createProject } from '@/api/create-project'
 import { generatedProject } from '@/api/genereted-project'
 import { fetchPositions } from '@/api/positions'
 import { fetchProjects } from '@/api/projects'
+import { removeStudentFromTeam } from '@/api/remove-student-from-team'
 import { updatePositionStudent } from '@/api/update-position-student'
 import ModalSaving from '@/components/modal-saving'
 import {
@@ -18,6 +19,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -117,12 +129,11 @@ export function TeacherTeams() {
   const { mutate: createProjectFn } = useMutation({
     mutationFn: async (data: FormValuesTeam) => {
       try {
-        const response = await createProject({
+        await createProject({
           name: data.name,
           description: data.description,
           positions: data.positions,
         })
-        return response
       } catch (error) {
         console.error('Erro ao criar projeto:', error)
         throw error
@@ -163,6 +174,31 @@ export function TeacherTeams() {
         await updatePositionStudent(student)
       } catch (error) {
         console.error('Error updating student:', error)
+        throw error
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
+
+      setIsModalStudentOpen(false)
+    },
+  })
+
+  const { mutate: removeStudentFromTeamFn } = useMutation({
+    mutationFn: async ({
+      projectId,
+      studentId,
+    }: {
+      projectId: string
+      studentId: string
+    }) => {
+      try {
+        await removeStudentFromTeam({
+          projectId,
+          studentId,
+        })
+      } catch (error) {
+        console.error('Erro remover estudante do time:', error)
         throw error
       }
     },
@@ -311,12 +347,51 @@ export function TeacherTeams() {
                                             )}
                                           />
                                           <DialogFooter className="-mb-4 mt-8">
-                                            <Button
-                                              variant="destructive"
-                                              type="submit"
-                                            >
-                                              Excluir
-                                            </Button>
+                                            <AlertDialog>
+                                              <AlertDialogTrigger asChild>
+                                                <Button variant="destructive">
+                                                  Excluir
+                                                </Button>
+                                              </AlertDialogTrigger>
+                                              <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                  <AlertDialogTitle>
+                                                    Deseja excluir o aluno do
+                                                    time?
+                                                  </AlertDialogTitle>
+                                                  <AlertDialogDescription>
+                                                    Esta ação não pode ser
+                                                    desfeita.
+                                                  </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                  <AlertDialogCancel>
+                                                    Cancelar
+                                                  </AlertDialogCancel>
+                                                  <AlertDialogAction
+                                                    onClick={formStudent.handleSubmit(
+                                                      () => {
+                                                        if (
+                                                          selectedStudent?.id
+                                                        ) {
+                                                          const student = {
+                                                            projectId: team.id,
+                                                            studentId:
+                                                              selectedStudent.id,
+                                                          }
+                                                          removeStudentFromTeamFn(
+                                                            student,
+                                                          )
+                                                        }
+                                                      },
+                                                    )}
+                                                  >
+                                                    Confirmar
+                                                  </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                              </AlertDialogContent>
+                                            </AlertDialog>
+
                                             <Button type="submit">
                                               Salvar
                                             </Button>
