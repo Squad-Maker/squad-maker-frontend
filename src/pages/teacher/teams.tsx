@@ -10,18 +10,19 @@ import {
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 
-export function Teams() {
+export function TeacherTeams() {
   const { data: teams = [] } = useQuery({
     queryKey: ['teams'],
     queryFn: fetchProjects,
     retry: false,
   })
+
   return (
     <>
       <Helmet title="Gestão de times" />
 
-      <div className="p-8">
-        <h1 className="text-2xl md:text-3xl pb-2 font-semibold">
+      <div className="p-4 md:px-12 md:py-4">
+        <h1 className="text-2xl md:text-3xl pb-8 font-semibold">
           Gestão de times
         </h1>
         <div className="border rounded-xl p-6">

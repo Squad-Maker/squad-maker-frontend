@@ -18,25 +18,15 @@ import {
 
 const teacherMenus = [
   {
-    name: 'Pessoas',
-    url: '/teacher/people',
-    icon: Users,
-  },
-  {
-    name: 'Projetos',
-    url: '/teacher/projects',
-    icon: PanelsTopLeft,
-  },
-  {
     name: 'Times',
     url: '/teacher/teams',
     icon: Handshake,
   },
-  {
-    name: 'Configurações',
-    url: '/teacher/settings',
-    icon: Settings,
-  },
+  // {
+  //   name: 'Configurações',
+  //   url: '/teacher/settings',
+  //   icon: Settings,
+  // },
 ]
 
 export function TeacherLayout({ children }: { children: React.ReactNode }) {
@@ -44,14 +34,10 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
 
   const getBreadcrumbTitle = (path: string) => {
     switch (path) {
-      case '/teacher/people':
-        return 'Pessoas'
-      case '/teacher/projects':
-        return 'Projetos'
       case '/teacher/teams':
         return 'Times'
-      case '/teacher/settings':
-        return 'Configurações'
+      // case '/teacher/settings':
+      //   return 'Configurações'
       default:
         return '...'
     }
