@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { createProject } from '@/api/create-project'
+import { generateAllTeams } from '@/api/genereted-all-project'
 import { generatedProject } from '@/api/genereted-project'
 import { fetchPositions } from '@/api/positions'
 import { fetchProjects } from '@/api/projects'
@@ -169,6 +170,27 @@ export function TeacherTeams() {
         title: 'Ooops!',
         variant: 'destructive',
         description: 'Ocorreu um problema ao gerar o time, tente novamente.',
+      })
+    },
+  })
+
+  const { mutate: generateAllTeamsFn } = useMutation({
+    mutationFn: async () => {
+      await generateAllTeams()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
+
+      toast({
+        title: 'Times',
+        description: 'Times gerados com sucesso!',
+      })
+    },
+    onError: () => {
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description: 'Ocorreu um problema ao gerar os times, tente novamente.',
       })
     },
   })
@@ -437,6 +459,33 @@ export function TeacherTeams() {
               </Accordion>
             ))}
             <div className="flex mt-4 justify-end">
+              <div className="my-3 pr-4">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="lg" variant="secondary">
+                      Gerar todos os times automaticamente
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Deseja gerar todos os times automaticamente?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação atribuirá os alunos aos seus respectivos
+                        times.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => generateAllTeamsFn()}>
+                        Confirmar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
               <Dialog
                 open={openDialogTeam}
                 onOpenChange={(isOpen) => {
@@ -448,7 +497,7 @@ export function TeacherTeams() {
                 }}
               >
                 <DialogTrigger asChild>
-                  <Button size="lg" className="gap-2 mt-2 mb-4">
+                  <Button size="lg" className="gap-2 my-3">
                     <Plus className="size-4" /> Novo time
                   </Button>
                 </DialogTrigger>
