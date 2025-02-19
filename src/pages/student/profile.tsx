@@ -85,26 +85,11 @@ export function StudentProfile() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-<<<<<<< HEAD
-      firstName: 'Franco',
-      surname: 'Colaopinto',
-      email: 'francocolaopinto@f1.com',
-      telefone: '(46) 9 1234-5678',
-      course: 'es',
-      periodo: 4,
-      linkedin: 'linkedin.com/in/franco-cola',
-      habilidadesDominio: 'Python, PHP, Javascript',
-      ferramentasDominio: 'VSCode, Git, Docker',
-      seniority: 'Pleno',
-      cargo1: 'Backend',
-      cargo2: 'Fullstack',
-=======
       tools: [],
       competenceLevel: '',
       positionOption1: '',
       positionOption2: '',
       preferredProject: '',
->>>>>>> a30b1e2ac516fa96b899964515df7c424145a174
     },
     mode: 'onChange',
     shouldUnregister: false,
@@ -152,31 +137,9 @@ export function StudentProfile() {
     setIsOpen(true)
     setStatus('loading')
 
-<<<<<<< HEAD
-  async function load() {
-    const resp = await squadServiceClient.readAllPositions({
-      pagination: {
-        limit: 100,
-      },
-    })
-    setPositions(resp.data)
-    const competenceLevel = await squadServiceClient.readAllCompetenceLevels({
-      pagination: {
-        limit: 100,
-      },
-    })
-    setCompetenceLevels(competenceLevel.data)
-  }
-
-  useEffect(() => {
-    load()
-  }, [])
-
-=======
     updateProfileFn(values)
   }
 
->>>>>>> a30b1e2ac516fa96b899964515df7c424145a174
   return (
     <>
       <Helmet title="Perfil" />
