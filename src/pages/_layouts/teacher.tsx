@@ -1,11 +1,10 @@
-import { Handshake, PanelsTopLeft, Settings, Users } from 'lucide-react'
+import { Handshake } from 'lucide-react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -19,25 +18,15 @@ import {
 
 const teacherMenus = [
   {
-    name: 'Pessoas',
-    url: '/teacher/people',
-    icon: Users,
-  },
-  {
-    name: 'Projetos',
-    url: '/teacher/projects',
-    icon: PanelsTopLeft,
-  },
-  {
     name: 'Times',
     url: '/teacher/teams',
     icon: Handshake,
   },
-  {
-    name: 'Configurações',
-    url: '/teacher/settings',
-    icon: Settings,
-  },
+  // {
+  //   name: 'Configurações',
+  //   url: '/teacher/settings',
+  //   icon: Settings,
+  // },
 ]
 
 export function TeacherLayout({ children }: { children: React.ReactNode }) {
@@ -45,14 +34,10 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
 
   const getBreadcrumbTitle = (path: string) => {
     switch (path) {
-      case '/teacher/people':
-        return 'Pessoas'
-      case '/teacher/projects':
-        return 'Projetos'
       case '/teacher/teams':
         return 'Times'
-      case '/teacher/settings':
-        return 'Configurações'
+      // case '/teacher/settings':
+      //   return 'Configurações'
       default:
         return '...'
     }
@@ -68,9 +53,6 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/teacher/home">Início</BreadcrumbLink>
-                </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
                   <BreadcrumbPage>
