@@ -31,9 +31,9 @@ export function TeacherTeams() {
               <AccordionItem value="item-1">
                 <AccordionTrigger>{team.name}</AccordionTrigger>
                 <AccordionContent>
-                  <p className="font-light">{team.description}</p>
+                  <p>{team.description}</p>
                   <div className="mt-4">
-                    <p className="font-bold">Colaboradores:</p>
+                    <p className="font-bold text-sm">Colaboradores:</p>
                     <div className="p-2">
                       {team.students.map((student, key) => (
                         <p key={key}>
