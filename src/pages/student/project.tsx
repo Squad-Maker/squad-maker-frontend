@@ -107,9 +107,9 @@ export function StudentProject() {
         )}
 
         <div className="grid grid-cols-2 gap-4 py-8">
-          {studentProjects.map((project, key) => (
+          {studentProjects.map((project) => (
             <div
-              key={key}
+              key={project.id}
               className="border border-input rounded-md p-4 h-full flex flex-col justify-between"
             >
               <div className="flex justify-between items-start">
@@ -118,11 +118,13 @@ export function StudentProject() {
                   <p>{project.description}</p>
                   <div className="mt-4">
                     <p className="font-bold text-sm">Colaboradores:</p>
-                    <div className="p-2">
-                      {project.students.map((student, index) => (
-                        <p key={index}>
-                          <span className="font-semibold">{student.name}</span>{' '}
-                          - {student.positionName}
+                    <div className="py-2">
+                      {project.students.map((student) => (
+                        <p key={student.id}>
+                          <span className="font-medium text-base">
+                            {student.name}
+                          </span>{' '}
+                          • {student.positionName}
                         </p>
                       ))}
                     </div>

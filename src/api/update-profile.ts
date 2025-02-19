@@ -1,12 +1,5 @@
+import type { UpdateStudentSubjectDataRequest } from '@/grpc/generated/squad/method'
 import { squadServiceClient } from '@/lib/api'
-
-export interface SignInBody {
-  tools: string[]
-  competenceLevelId: string
-  positionOption1Id: string
-  positionOption2Id: string | undefined
-  preferredProjectId: string | undefined
-}
 
 export async function updateProfile({
   tools,
@@ -14,7 +7,7 @@ export async function updateProfile({
   positionOption1Id,
   positionOption2Id,
   preferredProjectId,
-}: SignInBody) {
+}: UpdateStudentSubjectDataRequest) {
   const response = await squadServiceClient.updateStudentSubjectData({
     tools,
     competenceLevelId,
