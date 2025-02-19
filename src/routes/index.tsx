@@ -6,7 +6,7 @@ import { SignIn } from '@/pages/auth/sign-in'
 import { ErrorPage } from '@/pages/error'
 import { StudentHome } from '@/pages/student/home'
 import { StudentProfile } from '@/pages/student/profile'
-import { StudentProject } from '@/pages/student/projects'
+import { StudentProject } from '@/pages/student/project'
 import { TeacherHome } from '@/pages/teacher/home'
 
 import { AuthGuard } from './auth-guard'
