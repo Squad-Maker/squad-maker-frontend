@@ -1,4 +1,4 @@
-import { Handshake, PanelsTopLeft, Settings, Users } from 'lucide-react'
+import { Handshake } from 'lucide-react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { AppSidebar } from '@/components/app-sidebar'
