@@ -6,7 +6,6 @@ import { AppSidebar } from '@/components/app-sidebar'
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -40,7 +39,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
 
   const getBreadcrumbTitle = (path: string) => {
     switch (path) {
-      case '/student/projects':
+      case '/student/project':
         return 'Projetos'
       case '/student/profile':
         return 'Perfil'
@@ -59,9 +58,6 @@ export function StudentLayout({ children }: StudentLayoutProps) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/student">Início</BreadcrumbLink>
-                </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
                   <BreadcrumbPage>
@@ -74,7 +70,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
         </header>
         <main>
           {children}
-          <Outlet />{' '}
+          <Outlet />
         </main>
       </SidebarInset>
     </SidebarProvider>
