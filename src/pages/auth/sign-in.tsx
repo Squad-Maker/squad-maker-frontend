@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/use-toast'
 const signInForm = z.object({
   username: z.string().min(1, { message: 'Informe o nome de usuário.' }),
   password: z.string().min(1, { message: 'Informe a senha.' }),
+  keepConnected: z.boolean().default(true),
 })
 
 type SignInForm = z.infer<typeof signInForm>
@@ -49,9 +50,17 @@ export function SignIn() {
     },
   })
 
-  async function handleSignIn({ username, password }: SignInForm) {
+  async function handleSignIn({
+    username,
+    password,
+    keepConnected,
+  }: SignInForm) {
     try {
-      const accessToken = await authenticate({ username, password })
+      const accessToken = await authenticate({
+        username,
+        password,
+        keepConnected,
+      })
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken)
