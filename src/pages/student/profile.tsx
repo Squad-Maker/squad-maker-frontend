@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { LoaderCircleIcon } from 'lucide-react'
-import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -12,7 +11,6 @@ import { profile } from '@/api/profile'
 import { fetchProjects } from '@/api/projects'
 import { fetchStudentData } from '@/api/student-data'
 import { updateProfile } from '@/api/update-profile'
-import ModalSaving from '@/components/modal-saving'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -30,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useToast } from '@/components/ui/use-toast'
 
 const formSchema = z.object({
   tools: z
@@ -46,8 +45,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 export function StudentProfile() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [status, setStatus] = useState('loading')
+  const { toast } = useToast()
 
   const { data: user } = useQuery({
     queryKey: ['me'],
@@ -92,38 +90,40 @@ export function StudentProfile() {
 
   const { mutate: updateProfileFn, isPending: isSubmitting } = useMutation({
     mutationFn: async (data: FormValues) => {
-      try {
-        await updateProfile({
-          tools: data.tools,
-          competenceLevelId: data.competenceLevel,
-          positionOption1Id: data.positionOption1,
-          positionOption2Id: data.positionOption2 || undefined,
-          preferredProjectId: data.preferredProject || undefined,
-        })
-      } catch (error) {
-        console.error('Error updating profile:', error)
-        throw error
-      }
+      await updateProfile({
+        tools: data.tools,
+        competenceLevelId: data.competenceLevel,
+        positionOption1Id: data.positionOption1,
+        positionOption2Id: data.positionOption2 || undefined,
+        preferredProjectId: data.preferredProject || undefined,
+      })
     },
     onSuccess: () => {
-      setStatus('success')
-      setTimeout(() => setIsOpen(false), 2000)
+      toast({
+        title: 'Perfil',
+        description: 'Seu perfil foi atualizado!',
+      })
     },
     onError: () => {
-      setStatus('error')
-      setTimeout(() => setIsOpen(false), 2000)
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description:
+          'Ocorreu um problema ao tentar atualizar seu perifl, tente novamente.',
+      })
     },
   })
 
   const onSubmit = async (values: FormValues) => {
-    setIsOpen(true)
-    setStatus('loading')
-
     updateProfileFn(values)
   }
 
   if (isLoading) {
-    return <LoaderCircleIcon className="animate-spin" />
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <LoaderCircleIcon className="animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -327,13 +327,6 @@ export function StudentProfile() {
             </div>
           </form>
         </Form>
-        {isOpen && (
-          <ModalSaving
-            status={status}
-            messageLoad="Salvando..."
-            messageSuccess="Salvo com sucesso!"
-          />
-        )}
       </div>
     </>
   )

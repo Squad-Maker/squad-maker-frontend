@@ -12,7 +12,6 @@ import { fetchPositions } from '@/api/positions'
 import { fetchProjects } from '@/api/projects'
 import { removeStudentFromTeam } from '@/api/remove-student-from-team'
 import { updatePositionStudent } from '@/api/update-position-student'
-import ModalSaving from '@/components/modal-saving'
 import {
   Accordion,
   AccordionContent,
@@ -57,6 +56,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
 import type { Project_Student as ProjectStudent } from '@/grpc/generated/squad/project'
 import { queryClient } from '@/lib/react-query'
 
@@ -86,15 +86,14 @@ type FormValuesTeam = z.infer<typeof formSchemaTeam>
 type FormValuesStudent = z.infer<typeof formSchemaStudent>
 
 export function TeacherTeams() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [status, setStatus] = useState('loading')
+  const { toast } = useToast()
 
   const [selectedStudent, setSelectedStudent] = useState<ProjectStudent | null>(
     null,
   )
 
-  const [isModalTeamOpen, setIsModalTeamOpen] = useState(false)
-  const [isModalStudentOpen, setIsModalStudentOpen] = useState(false)
+  const [openDialogTeam, setOpenDialogTeam] = useState(false)
+  const [openDialogStudent, setOpenDialogStudent] = useState(false)
 
   const formTeam = useForm<FormValuesTeam>({
     resolver: zodResolver(formSchemaTeam),
@@ -128,59 +127,73 @@ export function TeacherTeams() {
 
   const { mutate: createProjectFn } = useMutation({
     mutationFn: async (data: FormValuesTeam) => {
-      try {
-        await createProject({
-          name: data.name,
-          description: data.description,
-          positions: data.positions,
-        })
-      } catch (error) {
-        console.error('Erro ao criar projeto:', error)
-        throw error
-      }
+      await createProject({
+        name: data.name,
+        description: data.description,
+        positions: data.positions,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
 
-      setIsModalStudentOpen(false)
+      setOpenDialogTeam(false)
+
+      toast({
+        title: 'Times',
+        description: 'Time gerado com sucesso!',
+      })
+    },
+    onError: () => {
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description: 'Ocorreu um problema ao gerar o time, tente novamente.',
+      })
     },
   })
 
   const { mutate: generatedProjectFn } = useMutation({
     mutationFn: async (projectId?: string) => {
-      try {
-        await generatedProject({
-          projectId,
-        })
-      } catch (error) {
-        console.error('Erro ao gerar membros do projeto:', error)
-        throw error
-      }
+      await generatedProject({
+        projectId,
+      })
     },
     onSuccess: () => {
-      setStatus('success')
-      setTimeout(() => setIsOpen(false), 2000)
-      queryClient.invalidateQueries({ queryKey: ['teams'] })
+      toast({
+        title: 'Times',
+        description: 'Time gerado com sucesso!',
+      })
     },
     onError: () => {
-      setStatus('error')
-      setTimeout(() => setIsOpen(false), 2000)
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description: 'Ocorreu um problema ao gerar o time, tente novamente.',
+      })
     },
   })
 
   const { mutate: updateStudentFn } = useMutation({
     mutationFn: async (student: FormValuesStudent) => {
-      try {
-        await updatePositionStudent(student)
-      } catch (error) {
-        console.error('Error updating student:', error)
-        throw error
-      }
+      await updatePositionStudent(student)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
 
-      setIsModalStudentOpen(false)
+      setOpenDialogStudent(false)
+
+      toast({
+        title: 'Times',
+        description: 'Aluno atualizado com sucesso!',
+      })
+    },
+    onError: () => {
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description:
+          'Ocorreu um problema ao atualizar o aluno, tente novamente.',
+      })
     },
   })
 
@@ -192,20 +205,27 @@ export function TeacherTeams() {
       projectId: string
       studentId: string
     }) => {
-      try {
-        await removeStudentFromTeam({
-          projectId,
-          studentId,
-        })
-      } catch (error) {
-        console.error('Erro remover estudante do time:', error)
-        throw error
-      }
+      await removeStudentFromTeam({
+        projectId,
+        studentId,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
 
-      setIsModalStudentOpen(false)
+      setOpenDialogStudent(false)
+
+      toast({
+        title: 'Times',
+        description: 'Aluno removido com sucesso!',
+      })
+    },
+    onError: () => {
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description: 'Ocorreu um problema ao remover o aluno, tente novamente.',
+      })
     },
   })
 
@@ -228,9 +248,7 @@ export function TeacherTeams() {
         <h1 className="text-2xl md:text-3xl pb-2 font-semibold">
           Gestão de times
         </h1>
-        <p className="text-muted-foreground">
-          Crie e gerencie os times dos seus projetos
-        </p>
+        <p className="text-muted-foreground">Crie e gerencie seus times</p>
 
         <div className="py-8">
           <div className="border rounded-xl py-2 px-6">
@@ -252,12 +270,12 @@ export function TeacherTeams() {
                             <p key={student.id}>
                               <span className="font-medium text-base underline">
                                 <Dialog
-                                  open={isModalStudentOpen}
+                                  open={openDialogStudent}
                                   onOpenChange={(isOpen) => {
                                     if (!isOpen) {
                                       setSelectedStudent(null)
                                     }
-                                    setIsModalStudentOpen(isOpen)
+                                    setOpenDialogStudent(isOpen)
                                   }}
                                 >
                                   <DialogTrigger asChild>
@@ -420,9 +438,9 @@ export function TeacherTeams() {
             ))}
             <div className="flex mt-4 justify-end">
               <Dialog
-                open={isModalTeamOpen}
+                open={openDialogTeam}
                 onOpenChange={(isOpen) => {
-                  setIsModalTeamOpen(isOpen)
+                  setOpenDialogTeam(isOpen)
 
                   if (!isOpen) {
                     formTeam.reset()
@@ -528,13 +546,6 @@ export function TeacherTeams() {
             </div>
           </div>
         </div>
-        {isOpen && (
-          <ModalSaving
-            status={status}
-            messageLoad="Salvando..."
-            messageSuccess="Salvo com sucesso!"
-          />
-        )}
       </div>
     </>
   )
