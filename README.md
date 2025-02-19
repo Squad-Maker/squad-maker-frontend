@@ -5,9 +5,9 @@ Este projeto faz parte da disciplina de Fábrica de Software da UTFPR-DV. O **Sq
 ## Configurando ambiente de desenvolvimento
 - Realizar fork do repositório.
 - Clonar o repositório:
-    - `git clone https://github.com/SeuUsuarioDoGit/squad-maker-web`
+    - `git clone https://github.com/SeuUsuarioDoGit/squad-maker-frontend`
 - Rodar o seguinte comando para adicionar a upstream:
-    - `git remote add upstream https://github.com/SquadMaker/squad-maker-web`
+    - `git remote add upstream https://github.com/Squad-Maker/squad-maker-frontend`
 - Bloquear push para upstream:
     - `git remote set-url --push upstream NO_PUSH`
 - Atualizar repositório:
