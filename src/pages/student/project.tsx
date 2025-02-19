@@ -1,4 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { DialogClose, DialogDescription } from '@radix-ui/react-dialog'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   EllipsisVertical,
   EyeClosed,
@@ -8,11 +10,14 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
+import { z } from 'zod'
 
+import { fetchProjects } from '@/api/projects'
+import { requestTeamRevaluation } from '@/api/request-team-revaluation'
 import { fetchStudentData } from '@/api/student-data'
 import { fetchStudentProjects } from '@/api/stundent-projects'
-import ModalSaving from '@/components/modal-saving'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -27,8 +32,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -36,15 +47,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import type { Project } from '@/grpc/generated/squad/project'
+import { queryClient } from '@/lib/react-query'
+
+const formSchema = z.object({
+  projectId: z.string(),
+  reason: z.string().min(1, { message: 'Informe o motivo' }),
+  desiredProjectId: z.string().optional(),
+})
+
+type FormValues = z.infer<typeof formSchema>
 
 export function StudentProject() {
+  const { toast } = useToast()
+
   const [openDialog, setOpenDialog] = useState(false)
-  const [status, setStatus] = useState('loading')
-  const [isOpen, setIsOpen] = useState(false)
+
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      projectId: '',
+      reason: '',
+      desiredProjectId: '',
+    },
+  })
 
   const { data: studentProjects = [] } = useQuery({
     queryKey: ['studentProjects'],
     queryFn: fetchStudentProjects,
+    retry: false,
+  })
+
+  const { data: teams = [] } = useQuery({
+    queryKey: ['teams'],
+    queryFn: fetchProjects,
     retry: false,
   })
 
@@ -54,23 +94,40 @@ export function StudentProject() {
     retry: false,
   })
 
-  function onSubmit() {
-    console.log('Formulário enviado:')
-    setOpenDialog(false)
-    setIsOpen(true)
-    setStatus('loading')
+  const { mutate: requestTeamRevaluationFn } = useMutation({
+    mutationFn: async (data: FormValues) => {
+      await requestTeamRevaluation(data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentProjects'] })
 
-    setTimeout(() => {
-      setStatus('success')
+      setOpenDialog(false)
 
-      setTimeout(() => {
-        setIsOpen(false)
-      }, 3000)
-    }, 2000)
+      toast({
+        title: 'Reavaliação',
+        description: 'Formulário enviado! Aguarde o contato do professor.',
+      })
+    },
+    onError: () => {
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description:
+          'Ocorreu um problema ao tentar enviar o formulário, tente novamente.',
+      })
+    },
+  })
+
+  const onSubmit = async (values: FormValues) => {
+    requestTeamRevaluationFn(values)
   }
 
   if (isLoading) {
-    return <LoaderCircleIcon className="animate-spin" />
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <LoaderCircleIcon className="animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -135,7 +192,12 @@ export function StudentProject() {
                     <EllipsisVertical className="text-muted-foreground" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setOpenDialog(true)}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setOpenDialog(true)
+                        setSelectedProject(project)
+                      }}
+                    >
                       <Settings />
                       Reavaliação
                     </DropdownMenuItem>
@@ -147,54 +209,89 @@ export function StudentProject() {
         </div>
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogContent>
+          <DialogContent className="min-w-[500px] overflow-auto">
             <DialogHeader>
               <DialogTitle>Solicitar troca/reavaliação de time</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                Se você deseja trocar de time ou reavaliar sua posição, preencha
+                o formulário abaixo
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="cause" className="text-left font-normal">
-                  Nos diga o porquê
-                </Label>
-                <Input
-                  id="cause"
-                  placeholder="O projeto não está de acordo com minhas..."
-                  className="col-span-3"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="username" className="text-left font-normal">
-                  Selecione o projeto com o qual você gostaria de colaborar
-                </Label>
-                <Select>
-                  <SelectTrigger className="">
-                    <SelectValue placeholder="" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {studentProjects.map((project, key) => (
-                      <SelectItem key={key} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit((data) => {
+                      if (selectedProject?.id) {
+                        const updatedData = {
+                          ...data,
+                          projectId: selectedProject?.id,
+                        }
+                        onSubmit(updatedData)
+                      }
+                    })}
+                    className="flex flex-col gap-4 py-2"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="reason"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nos diga o porquê</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              className="min-h-40 resize-none"
+                              {...field}
+                              placeholder="Descreva..."
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="desiredProjectId"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-1">
+                          <FormLabel>
+                            Qual projeto você gostaria de colaborar?
+                          </FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {teams.map((team) => (
+                                <SelectItem key={team.id} value={team.id}>
+                                  {team.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter className="-mb-4 mt-8">
+                      <DialogClose>
+                        <Button variant="outline">Cancelar</Button>
+                      </DialogClose>
+                      <Button type="submit">Enviar</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
               </div>
             </div>
-            <DialogFooter>
-              <Button onClick={onSubmit} type="submit">
-                Enviar
-              </Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
-      {isOpen && (
-        <ModalSaving
-          status={status}
-          messageLoad="Estamos enviando a sua solicitação"
-          messageSuccess="Solicitação gerada"
-        />
-      )}
     </>
   )
 }
