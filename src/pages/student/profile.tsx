@@ -38,12 +38,8 @@ const formSchema = z.object({
   positionOption1: z
     .string()
     .min(1, { message: 'Selecione a primeira opção de cargo' }),
-  positionOption2: z
-    .string()
-    .min(1, { message: 'Selecione a segunda opção de cargo' }),
-  preferredProject: z
-    .string()
-    .min(1, { message: 'Informe um projeto preferido' }),
+  positionOption2: z.string().nullable(),
+  preferredProject: z.string().nullable(),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -114,8 +110,8 @@ export function StudentProfile() {
           tools: data.tools,
           competenceLevelId: data.competenceLevel,
           positionOption1Id: data.positionOption1,
-          positionOption2Id: data.positionOption2,
-          preferredProjectId: data.preferredProject,
+          positionOption2Id: data.positionOption2 || undefined,
+          preferredProjectId: data.preferredProject || undefined,
         })
         return response
       } catch (error) {
@@ -200,7 +196,7 @@ export function StudentProfile() {
                       <FormItem className="md:col-span-1">
                         <FormLabel>Senioridade</FormLabel>
                         <Select
-                          value={field.value}
+                          value={field.value ?? undefined}
                           onValueChange={field.onChange}
                         >
                           <FormControl>
@@ -230,7 +226,7 @@ export function StudentProfile() {
                       <FormItem>
                         <FormLabel>Opção de cargo 1</FormLabel>
                         <Select
-                          value={field.value}
+                          value={field.value ?? undefined}
                           onValueChange={field.onChange}
                         >
                           <FormControl>
@@ -258,7 +254,7 @@ export function StudentProfile() {
                       <FormItem>
                         <FormLabel>Opção de cargo 2</FormLabel>
                         <Select
-                          value={field.value}
+                          value={field.value ?? undefined}
                           onValueChange={field.onChange}
                         >
                           <FormControl>
@@ -289,7 +285,7 @@ export function StudentProfile() {
                         Preferência por algum projeto anterior?
                       </FormLabel>
                       <Select
-                        value={field.value}
+                        value={field.value ?? undefined}
                         onValueChange={field.onChange}
                       >
                         <FormControl>

@@ -4,8 +4,8 @@ export interface SignInBody {
   tools: string[]
   competenceLevelId: string
   positionOption1Id: string
-  positionOption2Id: string
-  preferredProjectId: string
+  positionOption2Id: string | undefined
+  preferredProjectId: string | undefined
 }
 
 export async function updateProfile({
