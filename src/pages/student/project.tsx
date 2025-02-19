@@ -1,5 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { EllipsisVertical, EyeClosed, Settings, UserPen } from 'lucide-react'
+import {
+  EllipsisVertical,
+  EyeClosed,
+  LoaderCircleIcon,
+  Settings,
+  UserPen,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
@@ -42,7 +48,7 @@ export function StudentProject() {
     retry: false,
   })
 
-  const { data: studentData } = useQuery({
+  const { data: studentData, isPending: isLoading } = useQuery({
     queryKey: ['studentData'],
     queryFn: fetchStudentData,
     retry: false,
@@ -61,6 +67,10 @@ export function StudentProject() {
         setIsOpen(false)
       }, 3000)
     }, 2000)
+  }
+
+  if (isLoading) {
+    return <LoaderCircleIcon className="animate-spin" />
   }
 
   return (
