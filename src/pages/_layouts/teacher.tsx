@@ -1,5 +1,5 @@
 import { Handshake, PanelsTopLeft, Settings, Users } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import {
@@ -77,7 +77,10 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
             </Breadcrumb>
           </div>
         </header>
-        <main>{children}</main>
+        <main>
+          {children}
+          <Outlet />{' '}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )
