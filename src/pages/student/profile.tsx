@@ -129,6 +129,7 @@ export function StudentProfile() {
   return (
     <>
       <Helmet title="Perfil" />
+
       <div className="p-4 md:px-12 md:py-4">
         <h1 className="text-2xl md:text-3xl pb-2 font-semibold">Perfil</h1>
         <p className="text-muted-foreground">
