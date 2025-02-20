@@ -7,7 +7,7 @@ import { profile } from '@/api/profile'
 import { StudentLayout } from '@/pages/_layouts/student'
 import { TeacherLayout } from '@/pages/_layouts/teacher'
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
+export function AuthGuard() {
   const navigate = useNavigate()
 
   const {
@@ -39,10 +39,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (user.type === 1) {
-    return <TeacherLayout>{children}</TeacherLayout>
+    return <TeacherLayout />
   }
 
   if (user.type === 2) {
-    return <StudentLayout>{children}</StudentLayout>
+    return <StudentLayout />
   }
 }
