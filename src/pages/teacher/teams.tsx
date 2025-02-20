@@ -450,8 +450,13 @@ export function TeacherTeams() {
                       </div>
                     </div>
                     <div className="flex gap-2 justify-end">
-                      <Button variant="outline">Adicionar aluno</Button>
-                      <Button onClick={() => generatedProjectFn(team.id)}>
+                      <Button size="sm" variant="outline">
+                        Adicionar aluno
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => generatedProjectFn(team.id)}
+                      >
                         Preencher automaticamente
                       </Button>
                     </div>
