@@ -29,11 +29,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/student',
-    element: (
-      <AuthGuard>
-        <StudentHome />
-      </AuthGuard>
-    ),
+    element: <AuthGuard />,
     errorElement: <ErrorPage />,
     children: [
       {
@@ -52,11 +48,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/teacher',
-    element: (
-      <AuthGuard>
-        <TeacherTeams />
-      </AuthGuard>
-    ),
+    element: <AuthGuard />,
     errorElement: <ErrorPage />,
     children: [
       {
