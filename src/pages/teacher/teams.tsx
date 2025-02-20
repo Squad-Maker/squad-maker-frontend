@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Code, Laptop, Plus } from 'lucide-react'
+import { Code, Flame, Laptop, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
@@ -266,14 +266,15 @@ export function TeacherTeams() {
   return (
     <>
       <Helmet title="Gestão de times" />
+
       <div className="p-4 md:px-12 md:py-4">
         <h1 className="text-2xl md:text-3xl pb-2 font-semibold">
           Gestão de times
         </h1>
         <p className="text-muted-foreground">Crie e gerencie seus times</p>
 
-        <div className="py-8">
-          <div className="border rounded-xl py-2 px-6">
+        <div className="py-6">
+          <div className="rounded-xl">
             {teams.map((team) => (
               <Accordion key={team.id} type="single" collapsible>
                 <AccordionItem value="item-1">
@@ -463,7 +464,10 @@ export function TeacherTeams() {
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size="lg" variant="secondary">
-                      Gerar todos os times automaticamente
+                      <Flame className="size-4 text-orange-500 mr-2" />
+                      <span className="flex items-center ">
+                        Gerar todos os times automaticamente
+                      </span>
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
