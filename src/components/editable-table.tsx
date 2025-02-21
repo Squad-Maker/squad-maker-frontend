@@ -1,4 +1,4 @@
-import { Pen, Trash } from 'lucide-react'
+import { Check, Pen, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 
 import {
@@ -81,7 +81,17 @@ export function EditableTable<T extends Record>({
               className="w-full"
             />
             <Button onClick={handleAddOrUpdate}>
-              {editingId ? 'Atualizar' : 'Adicionar'}
+              {editingId ? (
+                <>
+                  <Check className="mr-2 size-4" />
+                  Atualizar
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 size-4" />
+                  Adicionar
+                </>
+              )}
             </Button>
             {editingId && (
               <Button onClick={handleCancelEdit} variant="ghost">
