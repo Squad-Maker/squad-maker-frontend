@@ -6,13 +6,16 @@ import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { addStudentToTeam } from '@/api/add-student-to-team'
 import { createProject } from '@/api/create-project'
 import { generateAllTeams } from '@/api/genereted-all-project'
 import { generatedProject } from '@/api/genereted-project'
 import { fetchPositions } from '@/api/positions'
 import { fetchProjects } from '@/api/projects'
+import { fetchAllStudent } from '@/api/read-all-students'
 import { removeStudentFromTeam } from '@/api/remove-student-from-team'
 import { updatePositionStudent } from '@/api/update-position-student'
+import { SingleSelect } from '@/components/single-select'
 import {
   Accordion,
   AccordionContent,
@@ -86,6 +89,7 @@ export function TeacherTeams() {
   type FormValuesTeam = z.infer<typeof formSchemaTeam>
 
   type FormValuesStudent = z.infer<typeof formSchemaStudent>
+
   const { toast } = useToast()
 
   const [selectedStudent, setSelectedStudent] = useState<ProjectStudent | null>(
@@ -94,6 +98,7 @@ export function TeacherTeams() {
 
   const [openDialogTeam, setOpenDialogTeam] = useState(false)
   const [openDialogStudent, setOpenDialogStudent] = useState(false)
+  const [openDialogAddStudent, setOpenDialogAddStudent] = useState(false)
 
   const formTeam = useForm<FormValuesTeam>({
     resolver: zodResolver(formSchemaTeam),
@@ -122,6 +127,12 @@ export function TeacherTeams() {
   const { data: positions = [] } = useQuery({
     queryKey: ['positions'],
     queryFn: fetchPositions,
+    retry: false,
+  })
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: fetchAllStudent,
     retry: false,
   })
 
@@ -250,12 +261,41 @@ export function TeacherTeams() {
     },
   })
 
+  const { mutate: addStudentFromTeamFn } = useMutation({
+    mutationFn: async (student: FormValuesStudent) => {
+      await addStudentToTeam(student)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
+      queryClient.invalidateQueries({ queryKey: ['students'] })
+
+      setOpenDialogAddStudent(false)
+
+      toast({
+        title: 'Times',
+        description: 'Aluno adicionado com sucesso!',
+      })
+    },
+    onError: () => {
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description:
+          'Ocorreu um problema ao adicionar o aluno, tente novamente.',
+      })
+    },
+  })
+
   const onSubmitTeam = (data: FormValuesTeam) => {
     createProjectFn(data)
   }
 
   const onUpdateStudent = (data: FormValuesStudent) => {
     updateStudentFn(data)
+  }
+
+  const onAddStudent = (data: FormValuesStudent) => {
+    addStudentFromTeamFn(data)
   }
 
   const totalVagas = formTeam
@@ -449,7 +489,88 @@ export function TeacherTeams() {
                       </div>
                     </div>
                     <div className="flex gap-2 justify-end">
-                      <Button variant="outline">Adicionar aluno</Button>
+                      <Dialog
+                        open={openDialogAddStudent}
+                        onOpenChange={(isOpen) => {
+                          setOpenDialogAddStudent(isOpen)
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button variant="secondary">Adicionar aluno</Button>
+                        </DialogTrigger>
+                        <DialogContent className="min-w-[500px] overflow-auto">
+                          <DialogHeader>
+                            <DialogTitle>
+                              Adicione um aluno ao time {team.name}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-2">
+                            <Form {...formStudent}>
+                              <form
+                                onSubmit={formStudent.handleSubmit((data) => {
+                                  const updatedData = {
+                                    ...data,
+                                    projectId: team.id,
+                                  }
+                                  onAddStudent(updatedData)
+                                })}
+                                className="py-4"
+                              >
+                                <FormField
+                                  control={formStudent.control}
+                                  name="studentId"
+                                  render={({ field }) => (
+                                    <FormItem className="md:col-span-1">
+                                      <FormLabel>Aluno</FormLabel>
+                                      <SingleSelect
+                                        students={students}
+                                        onChange={(studentId) =>
+                                          field.onChange(studentId)
+                                        }
+                                        value={field.value}
+                                      />
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={formStudent.control}
+                                  name="positionId"
+                                  render={({ field }) => (
+                                    <FormItem className="md:col-span-1">
+                                      <FormLabel>Cargo</FormLabel>
+                                      <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                      >
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione um cargo..." />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          {positions.map((position) => (
+                                            <SelectItem
+                                              key={position.id}
+                                              value={position.id}
+                                            >
+                                              {position.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <DialogFooter className="-mb-4 mt-8">
+                                  <Button type="submit">Adicionar</Button>
+                                </DialogFooter>
+                              </form>
+                            </Form>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       <Button onClick={() => generatedProjectFn(team.id)}>
                         Preencher automaticamente
                       </Button>
