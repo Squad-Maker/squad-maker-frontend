@@ -25,7 +25,7 @@ export function NavMain({
         {menus.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton tooltip={item.name}>
-              <Link to={item.url} className="flex items-center gap-2 w-full">
+              <Link to={item.url} className="flex items-center gap-3 w-full">
                 <item.icon />
                 <span>{item.name}</span>
               </Link>

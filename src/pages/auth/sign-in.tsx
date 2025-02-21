@@ -42,7 +42,7 @@ export function SignIn() {
     mutationFn: profile,
     onSuccess: (profile) => {
       if (profile?.type === 1) {
-        return navigate('/teacher/teams', { replace: true })
+        return navigate('/teacher', { replace: true })
       }
       if (profile?.type === 2) {
         return navigate('/student', { replace: true })

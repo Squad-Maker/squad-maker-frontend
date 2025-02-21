@@ -8,6 +8,7 @@ import { StudentHome } from '@/pages/student/home'
 import { StudentProfile } from '@/pages/student/profile'
 import { StudentProject } from '@/pages/student/project'
 import { TeacherConfigs } from '@/pages/teacher/configs'
+import { TeacherHome } from '@/pages/teacher/home'
 import { TeacherTeams } from '@/pages/teacher/teams'
 
 import { AuthGuard } from './auth-guard'
@@ -53,7 +54,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '',
-        element: <TeacherTeams />,
+        element: <TeacherHome />,
       },
       {
         path: 'teams',

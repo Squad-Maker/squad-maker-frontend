@@ -13,7 +13,7 @@ import { generateAllTeams } from '@/api/genereted-all-project'
 import { generatedProject } from '@/api/genereted-project'
 import { fetchPositions } from '@/api/positions'
 import { fetchProjects } from '@/api/projects'
-import { fetchAllStudent } from '@/api/read-all-students'
+import { fetchAllStudents } from '@/api/read-all-students'
 import { removeStudentFromTeam } from '@/api/remove-student-from-team'
 import { updatePositionStudent } from '@/api/update-position-student'
 import { updateProject } from '@/api/update-project'
@@ -135,7 +135,14 @@ export function TeacherTeams() {
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
-    queryFn: fetchAllStudent,
+    queryFn: () =>
+      fetchAllStudents({
+        simple: {
+          filterKey: 'inProject',
+          value: 'false',
+          operator: 0,
+        },
+      }),
     retry: false,
   })
 
@@ -413,7 +420,7 @@ export function TeacherTeams() {
             }}
           >
             <DialogTrigger className="z-10" asChild>
-              <Button size="lg" className="gap-2 my-3">
+              <Button size="lg" className="gap-2">
                 <Plus className="size-4" /> Novo time
               </Button>
             </DialogTrigger>
