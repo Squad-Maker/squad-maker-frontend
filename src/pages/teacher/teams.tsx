@@ -108,7 +108,7 @@ export function TeacherTeams() {
     defaultValues: {
       name: '',
       description: '',
-      positions: [],
+      positions: [{ id: '', count: '' }],
     },
   })
 
@@ -149,6 +149,7 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
+
       setOpenDialogTeam(false)
 
       formTeam.reset()
@@ -221,6 +222,8 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
+      queryClient.invalidateQueries({ queryKey: ['students'] })
+
       toast({
         title: 'Times',
         description: 'Times gerados com sucesso!',
@@ -241,7 +244,9 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
+
       setOpenDialogStudent(false)
+
       toast({
         title: 'Times',
         description: 'Aluno atualizado com sucesso!',
@@ -272,7 +277,10 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
+      queryClient.invalidateQueries({ queryKey: ['students'] })
+
       setOpenDialogStudent(false)
+
       toast({
         title: 'Times',
         description: 'Aluno removido com sucesso!',
@@ -294,7 +302,11 @@ export function TeacherTeams() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
       queryClient.invalidateQueries({ queryKey: ['students'] })
+
       setOpenDialogAddStudent(false)
+
+      formStudent.reset()
+
       toast({
         title: 'Times',
         description: 'Aluno adicionado com sucesso!',
@@ -589,10 +601,11 @@ export function TeacherTeams() {
                                   <Dialog
                                     open={openDialogStudent}
                                     onOpenChange={(isOpen) => {
+                                      setOpenDialogStudent(isOpen)
+
                                       if (!isOpen) {
                                         setSelectedStudent(null)
                                       }
-                                      setOpenDialogStudent(isOpen)
                                     }}
                                   >
                                     <DialogTrigger asChild>
@@ -752,6 +765,10 @@ export function TeacherTeams() {
                           open={openDialogAddStudent}
                           onOpenChange={(isOpen) => {
                             setOpenDialogAddStudent(isOpen)
+
+                            if (!isOpen) {
+                              formStudent.reset()
+                            }
                           }}
                         >
                           <DialogTrigger asChild>
@@ -759,10 +776,13 @@ export function TeacherTeams() {
                           </DialogTrigger>
                           <DialogContent className="lg:min-w-[600px] overflow-auto">
                             <DialogHeader>
-                              <DialogTitle>
-                                Adicione um aluno ao time {team.name}
-                              </DialogTitle>
+                              <DialogTitle>{team.name}</DialogTitle>
+                              <DialogDescription>
+                                Selecione um aluno e um cargo para adicionar ao
+                                time.
+                              </DialogDescription>
                             </DialogHeader>
+
                             <div className="space-y-2">
                               <Form {...formStudent}>
                                 <form
@@ -773,7 +793,7 @@ export function TeacherTeams() {
                                     }
                                     onAddStudent(updatedData)
                                   })}
-                                  className="py-4"
+                                  className="flex flex-col gap-4 py-2"
                                 >
                                   <FormField
                                     control={formStudent.control}
@@ -822,7 +842,7 @@ export function TeacherTeams() {
                                       </FormItem>
                                     )}
                                   />
-                                  <DialogFooter className="-mb-4 mt-8">
+                                  <DialogFooter className="mt-4">
                                     <Button type="submit">Adicionar</Button>
                                   </DialogFooter>
                                 </form>

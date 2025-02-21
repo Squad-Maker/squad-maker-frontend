@@ -44,26 +44,33 @@ export function SingleSelect({ students, onChange, value }: SingleSelectProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="w-full justify-between">
-          {selected ? selected.name : 'Selecione um aluno'}
-          <ChevronDown className="ml-2 h-4 w-4" />
+        <Button
+          variant="outline"
+          className="w-full font-normal justify-between"
+        >
+          {selected ? selected.name : 'Selecione um aluno...'}
+          <ChevronDown className="-mr-1 opacity-50 h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-2">
         <Command className="w-full">
           <CommandInput className="w-full" placeholder="Pesquisar aluno..." />
-          <CommandList className="w-full">
-            {students.map((student) => (
-              <CommandItem
-                key={student.id}
-                onSelect={() => handleSelect(student)}
-              >
-                <Check
-                  className={`mr-2 h-4 w-4 ${selected?.id === student.id ? 'opacity-100' : 'opacity-0'}`}
-                />
-                {student.name}
-              </CommandItem>
-            ))}
+          <CommandList className="w-full pt-1">
+            {students.length ? (
+              students.map((student) => (
+                <CommandItem
+                  key={student.id}
+                  onSelect={() => handleSelect(student)}
+                >
+                  <Check
+                    className={`mr-2 h-4 w-4 ${selected?.id === student.id ? 'opacity-100' : 'opacity-0'}`}
+                  />
+                  {student.name}
+                </CommandItem>
+              ))
+            ) : (
+              <CommandItem disabled>Nenhum aluno encontrado</CommandItem>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>
