@@ -1,4 +1,4 @@
-import { Handshake, Settings } from 'lucide-react'
+import { Handshake, Home, Settings } from 'lucide-react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { AppSidebar } from '@/components/app-sidebar'
@@ -18,6 +18,11 @@ import {
 
 const teacherMenus = [
   {
+    name: 'Início',
+    url: '/teacher',
+    icon: Home,
+  },
+  {
     name: 'Times',
     url: '/teacher/teams',
     icon: Handshake,
@@ -34,6 +39,8 @@ export function TeacherLayout() {
 
   const getBreadcrumbTitle = (path: string) => {
     switch (path) {
+      case '/teacher':
+        return 'Visão geral'
       case '/teacher/teams':
         return 'Times'
       case '/teacher/configs':
