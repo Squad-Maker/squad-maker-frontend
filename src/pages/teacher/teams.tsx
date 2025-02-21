@@ -390,7 +390,12 @@ export function TeacherTeams() {
               setOpenDialogTeam(isOpen)
 
               if (!isOpen) {
-                formTeam.reset()
+                formTeam.reset({
+                  id: '',
+                  name: '',
+                  description: '',
+                  positions: positions.map((p) => ({ id: p.id, count: '' })),
+                })
                 setIsEditing(false)
               }
             }}
@@ -400,14 +405,15 @@ export function TeacherTeams() {
                 <Plus className="size-4" /> Novo time
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="lg:min-w-[600px]">
               <DialogHeader>
                 <DialogTitle>
                   {isEditing ? 'Editar time' : 'Crie um novo time'}
                 </DialogTitle>
                 <DialogDescription>
-                  Crie um time de um projeto já existente para que os alunos
-                  consigam seleciona-los em seu cadastro
+                  {isEditing
+                    ? 'Edite as informações do time e adicione ou remova membros'
+                    : 'Preencha as informações do time'}
                 </DialogDescription>
               </DialogHeader>
               <Form {...formTeam}>
@@ -467,14 +473,19 @@ export function TeacherTeams() {
                                   min="1"
                                   value={existingPosition.count}
                                   onChange={(e) => {
-                                    const value =
-                                      Number.parseInt(e.target.value, 10) || 0
-                                    formTeam.setValue('positions', [
-                                      ...formTeam
-                                        .getValues('positions')
-                                        .filter((p) => p.id !== position.id),
-                                      { id: position.id, count: String(value) },
-                                    ])
+                                    const updatedPositions = formTeam
+                                      .getValues('positions')
+                                      .map((p) => {
+                                        if (p.id === position.id) {
+                                          return { ...p, count: e.target.value }
+                                        }
+                                        return p
+                                      })
+
+                                    formTeam.setValue(
+                                      'positions',
+                                      updatedPositions,
+                                    )
                                   }}
                                 />
                               </FormControl>
@@ -600,7 +611,7 @@ export function TeacherTeams() {
                                         {student.name}
                                       </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="min-w-[500px] overflow-auto">
+                                    <DialogContent className="lg:min-w-[600px] overflow-auto">
                                       <DialogHeader>
                                         <DialogTitle>
                                           {selectedStudent?.name}
@@ -746,7 +757,7 @@ export function TeacherTeams() {
                           <DialogTrigger asChild>
                             <Button variant="outline">Adicionar aluno</Button>
                           </DialogTrigger>
-                          <DialogContent className="min-w-[500px] overflow-auto">
+                          <DialogContent className="lg:min-w-[600px] overflow-auto">
                             <DialogHeader>
                               <DialogTitle>
                                 Adicione um aluno ao time {team.name}

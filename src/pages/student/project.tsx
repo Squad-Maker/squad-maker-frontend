@@ -214,7 +214,7 @@ export function StudentProject() {
         </div>
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogContent className="lg:min-w-[500px] overflow-auto">
+          <DialogContent className="lg:min-w-[600px] overflow-auto">
             <DialogHeader>
               <DialogTitle>Solicitar troca/reavaliação de time</DialogTitle>
               <DialogDescription className="text-muted-foreground">
