@@ -96,7 +96,11 @@ export function StudentProject() {
 
   const { mutate: requestTeamRevaluationFn } = useMutation({
     mutationFn: async (data: FormValues) => {
-      await requestTeamRevaluation(data)
+      await requestTeamRevaluation({
+        projectId: data.projectId,
+        reason: data.reason,
+        desiredProjectId: data.desiredProjectId || undefined,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['studentProjects'] })
@@ -133,7 +137,8 @@ export function StudentProject() {
   return (
     <>
       <Helmet title="Projetos" />
-      <div className="px-12 py-4">
+
+      <div className="p-4 md:px-12 md:py-4">
         <h1 className="text-2xl md:text-3xl pb-2 font-semibold">Projetos</h1>
         <p className="text-muted-foreground">
           Aqui você pode visualizar os projetos disponíveis para colaborar

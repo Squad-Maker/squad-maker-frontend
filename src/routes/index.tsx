@@ -7,6 +7,7 @@ import { ErrorPage } from '@/pages/error'
 import { StudentHome } from '@/pages/student/home'
 import { StudentProfile } from '@/pages/student/profile'
 import { StudentProject } from '@/pages/student/project'
+import { TeacherConfigs } from '@/pages/teacher/configs'
 import { TeacherTeams } from '@/pages/teacher/teams'
 
 import { AuthGuard } from './auth-guard'
@@ -28,11 +29,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/student',
-    element: (
-      <AuthGuard>
-        <StudentHome />
-      </AuthGuard>
-    ),
+    element: <AuthGuard />,
     errorElement: <ErrorPage />,
     children: [
       {
@@ -50,13 +47,23 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: '/teacher/teams',
-    element: (
-      <AuthGuard>
-        <TeacherTeams />
-      </AuthGuard>
-    ),
+    path: '/teacher',
+    element: <AuthGuard />,
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: '',
+        element: <TeacherTeams />,
+      },
+      {
+        path: 'teams',
+        element: <TeacherTeams />,
+      },
+      {
+        path: 'configs',
+        element: <TeacherConfigs />,
+      },
+    ],
   },
   {
     path: '*',

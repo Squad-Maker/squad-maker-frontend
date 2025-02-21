@@ -93,6 +93,7 @@ type FormValuesStudent = z.infer<typeof formSchemaStudent>
 
 export function TeacherTeams() {
   const { toast } = useToast()
+
   const [selectedStudent, setSelectedStudent] = useState<ProjectStudent | null>(
     null,
   )
@@ -149,7 +150,9 @@ export function TeacherTeams() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
       setOpenDialogTeam(false)
+
       formTeam.reset()
+
       toast({
         title: 'Times',
         description: 'Time gerado com sucesso!',
@@ -175,8 +178,11 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
+
       setOpenDialogTeam(false)
+
       formTeam.reset()
+
       toast({ title: 'Time', description: 'Time atualizado com sucesso!' })
     },
     onError: () => {
@@ -312,7 +318,9 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
+
       setOpenDialogStudent(false)
+
       toast({
         title: 'Times',
         description: 'Time excluído com sucesso!',
@@ -365,6 +373,7 @@ export function TeacherTeams() {
   return (
     <>
       <Helmet title="Gestão de times" />
+
       <div className="p-4 md:px-12 md:py-4">
         <div className="flex flex-row justify-between">
           <div>
@@ -379,6 +388,7 @@ export function TeacherTeams() {
             open={openDialogTeam}
             onOpenChange={(isOpen) => {
               setOpenDialogTeam(isOpen)
+
               if (!isOpen) {
                 formTeam.reset()
                 setIsEditing(false)
@@ -506,6 +516,7 @@ export function TeacherTeams() {
                             className="h-8 w-8 p-0"
                             onClick={(e) => {
                               e.stopPropagation()
+
                               onEditTeam(team)
                             }}
                           >
@@ -733,7 +744,7 @@ export function TeacherTeams() {
                           }}
                         >
                           <DialogTrigger asChild>
-                            <Button variant="secondary">Adicionar aluno</Button>
+                            <Button variant="outline">Adicionar aluno</Button>
                           </DialogTrigger>
                           <DialogContent className="min-w-[500px] overflow-auto">
                             <DialogHeader>
@@ -808,7 +819,10 @@ export function TeacherTeams() {
                             </div>
                           </DialogContent>
                         </Dialog>
-                        <Button onClick={() => generatedProjectFn(team.id)}>
+                        <Button
+                          size="sm"
+                          onClick={() => generatedProjectFn(team.id)}
+                        >
                           Preencher automaticamente
                         </Button>
                       </div>
