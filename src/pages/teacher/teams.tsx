@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Code, Flame, Laptop, Pen, Plus, Trash } from 'lucide-react'
+import { Check, Code, Flame, Laptop, Pen, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
@@ -360,7 +360,12 @@ export function TeacherTeams() {
               setOpenDialogTeam(isOpen)
 
               if (!isOpen) {
-                formTeam.reset()
+                formTeam.reset({
+                  id: '',
+                  name: '',
+                  description: '',
+                  positions: positions.map((p) => ({ id: p.id, count: '' })),
+                })
                 setIsEditing(false)
               }
             }}
@@ -376,14 +381,15 @@ export function TeacherTeams() {
                   {isEditing ? 'Editar time' : 'Crie um novo time'}
                 </DialogTitle>
                 <DialogDescription>
-                  Crie um time de um projeto já existente para que os alunos
-                  consigam seleciona-los em seu cadastro
+                  {isEditing
+                    ? 'Edite as informações do time e adicione ou remova membros'
+                    : 'Preencha as informações do time'}
                 </DialogDescription>
               </DialogHeader>
               <Form {...formTeam}>
                 <form
                   onSubmit={formTeam.handleSubmit(onSubmitTeam)}
-                  className="flex flex-col gap-4 py-2"
+                  className="flex flex-col gap-4 py-2 lg:min-w-[500px]"
                 >
                   <FormField
                     control={formTeam.control}
@@ -437,14 +443,19 @@ export function TeacherTeams() {
                                   min="1"
                                   value={existingPosition.count}
                                   onChange={(e) => {
-                                    const value =
-                                      Number.parseInt(e.target.value, 10) || 0
-                                    formTeam.setValue('positions', [
-                                      ...formTeam
-                                        .getValues('positions')
-                                        .filter((p) => p.id !== position.id),
-                                      { id: position.id, count: String(value) },
-                                    ])
+                                    const updatedPositions = formTeam
+                                      .getValues('positions')
+                                      .map((p) => {
+                                        if (p.id === position.id) {
+                                          return { ...p, count: e.target.value }
+                                        }
+                                        return p
+                                      })
+
+                                    formTeam.setValue(
+                                      'positions',
+                                      updatedPositions,
+                                    )
                                   }}
                                 />
                               </FormControl>
@@ -462,7 +473,15 @@ export function TeacherTeams() {
                       </span>
                     </span>
                     <Button type="submit">
-                      {isEditing ? 'Salvar alterações' : 'Criar time'}
+                      {isEditing ? (
+                        <>
+                          <Check className="mr-2 size-4" /> Salvar alterações
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="mr-2 size-4" /> Criar
+                        </>
+                      )}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -570,7 +589,7 @@ export function TeacherTeams() {
                                         {student.name}
                                       </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="min-w-[500px] overflow-auto">
+                                    <DialogContent className="lg:min-w-[500px] overflow-auto">
                                       <DialogHeader>
                                         <DialogTitle>
                                           {selectedStudent?.name}

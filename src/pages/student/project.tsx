@@ -214,7 +214,7 @@ export function StudentProject() {
         </div>
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogContent className="min-w-[500px] overflow-auto">
+          <DialogContent className="lg:min-w-[500px] overflow-auto">
             <DialogHeader>
               <DialogTitle>Solicitar troca/reavaliação de time</DialogTitle>
               <DialogDescription className="text-muted-foreground">
@@ -284,11 +284,15 @@ export function StudentProject() {
                         </FormItem>
                       )}
                     />
-                    <DialogFooter className="-mb-4 mt-8">
+                    <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2 -mb-4 mt-4">
                       <DialogClose>
-                        <Button variant="outline">Cancelar</Button>
+                        <Button variant="outline" className="w-full sm:w-auto">
+                          Cancelar
+                        </Button>
                       </DialogClose>
-                      <Button type="submit">Enviar</Button>
+                      <Button type="submit" className="w-full sm:w-auto">
+                        Enviar
+                      </Button>
                     </DialogFooter>
                   </form>
                 </Form>
