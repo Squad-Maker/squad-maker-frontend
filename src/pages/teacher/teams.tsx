@@ -1,20 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Check, Code, Flame, Laptop, Pen, Plus, Trash } from 'lucide-react'
+import { Code, Flame, Laptop, Pen, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { addStudentToTeam } from '@/api/add-student-to-team'
 import { createProject } from '@/api/create-project'
 import { deleteProject } from '@/api/delete-project'
 import { generateAllTeams } from '@/api/genereted-all-project'
 import { generatedProject } from '@/api/genereted-project'
 import { fetchPositions } from '@/api/positions'
 import { fetchProjects } from '@/api/projects'
+import { fetchAllStudent } from '@/api/read-all-students'
 import { removeStudentFromTeam } from '@/api/remove-student-from-team'
 import { updatePositionStudent } from '@/api/update-position-student'
 import { updateProject } from '@/api/update-project'
+import { SingleSelect } from '@/components/single-select'
 import {
   Accordion,
   AccordionContent,
@@ -86,7 +89,6 @@ const formSchemaStudent = z.object({
 })
 
 type FormValuesTeam = z.infer<typeof formSchemaTeam>
-
 type FormValuesStudent = z.infer<typeof formSchemaStudent>
 
 export function TeacherTeams() {
@@ -95,9 +97,10 @@ export function TeacherTeams() {
   const [selectedStudent, setSelectedStudent] = useState<ProjectStudent | null>(
     null,
   )
-
   const [openDialogTeam, setOpenDialogTeam] = useState<boolean>(false)
   const [openDialogStudent, setOpenDialogStudent] = useState<boolean>(false)
+  const [openDialogAddStudent, setOpenDialogAddStudent] =
+    useState<boolean>(false)
   const [isEditing, setIsEditing] = useState<boolean>(false)
 
   const formTeam = useForm<FormValuesTeam>({
@@ -130,6 +133,12 @@ export function TeacherTeams() {
     retry: false,
   })
 
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: fetchAllStudent,
+    retry: false,
+  })
+
   const { mutate: createProjectFn } = useMutation({
     mutationFn: async (data: FormValuesTeam) => {
       await createProject({
@@ -140,7 +149,6 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
-
       setOpenDialogTeam(false)
 
       formTeam.reset()
@@ -213,7 +221,6 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
-
       toast({
         title: 'Times',
         description: 'Times gerados com sucesso!',
@@ -234,9 +241,7 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
-
       setOpenDialogStudent(false)
-
       toast({
         title: 'Times',
         description: 'Aluno atualizado com sucesso!',
@@ -267,9 +272,7 @@ export function TeacherTeams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
-
       setOpenDialogStudent(false)
-
       toast({
         title: 'Times',
         description: 'Aluno removido com sucesso!',
@@ -280,6 +283,29 @@ export function TeacherTeams() {
         title: 'Ooops!',
         variant: 'destructive',
         description: 'Ocorreu um problema ao remover o aluno, tente novamente.',
+      })
+    },
+  })
+
+  const { mutate: addStudentFromTeamFn } = useMutation({
+    mutationFn: async (student: FormValuesStudent) => {
+      await addStudentToTeam(student)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
+      queryClient.invalidateQueries({ queryKey: ['students'] })
+      setOpenDialogAddStudent(false)
+      toast({
+        title: 'Times',
+        description: 'Aluno adicionado com sucesso!',
+      })
+    },
+    onError: () => {
+      toast({
+        title: 'Ooops!',
+        variant: 'destructive',
+        description:
+          'Ocorreu um problema ao adicionar o aluno, tente novamente.',
       })
     },
   })
@@ -336,6 +362,10 @@ export function TeacherTeams() {
     updateStudentFn(data)
   }
 
+  const onAddStudent = (data: FormValuesStudent) => {
+    addStudentFromTeamFn(data)
+  }
+
   const totalPositions = formTeam
     .watch('positions')
     .reduce((acc, curr) => acc + Number(curr.count || 0), 0)
@@ -360,12 +390,7 @@ export function TeacherTeams() {
               setOpenDialogTeam(isOpen)
 
               if (!isOpen) {
-                formTeam.reset({
-                  id: '',
-                  name: '',
-                  description: '',
-                  positions: positions.map((p) => ({ id: p.id, count: '' })),
-                })
+                formTeam.reset()
                 setIsEditing(false)
               }
             }}
@@ -381,15 +406,14 @@ export function TeacherTeams() {
                   {isEditing ? 'Editar time' : 'Crie um novo time'}
                 </DialogTitle>
                 <DialogDescription>
-                  {isEditing
-                    ? 'Edite as informações do time e adicione ou remova membros'
-                    : 'Preencha as informações do time'}
+                  Crie um time de um projeto já existente para que os alunos
+                  consigam seleciona-los em seu cadastro
                 </DialogDescription>
               </DialogHeader>
               <Form {...formTeam}>
                 <form
                   onSubmit={formTeam.handleSubmit(onSubmitTeam)}
-                  className="flex flex-col gap-4 py-2 lg:min-w-[500px]"
+                  className="flex flex-col gap-4 py-2"
                 >
                   <FormField
                     control={formTeam.control}
@@ -443,19 +467,14 @@ export function TeacherTeams() {
                                   min="1"
                                   value={existingPosition.count}
                                   onChange={(e) => {
-                                    const updatedPositions = formTeam
-                                      .getValues('positions')
-                                      .map((p) => {
-                                        if (p.id === position.id) {
-                                          return { ...p, count: e.target.value }
-                                        }
-                                        return p
-                                      })
-
-                                    formTeam.setValue(
-                                      'positions',
-                                      updatedPositions,
-                                    )
+                                    const value =
+                                      Number.parseInt(e.target.value, 10) || 0
+                                    formTeam.setValue('positions', [
+                                      ...formTeam
+                                        .getValues('positions')
+                                        .filter((p) => p.id !== position.id),
+                                      { id: position.id, count: String(value) },
+                                    ])
                                   }}
                                 />
                               </FormControl>
@@ -473,15 +492,7 @@ export function TeacherTeams() {
                       </span>
                     </span>
                     <Button type="submit">
-                      {isEditing ? (
-                        <>
-                          <Check className="mr-2 size-4" /> Salvar alterações
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="mr-2 size-4" /> Criar
-                        </>
-                      )}
+                      {isEditing ? 'Salvar alterações' : 'Criar time'}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -589,7 +600,7 @@ export function TeacherTeams() {
                                         {student.name}
                                       </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="lg:min-w-[500px] overflow-auto">
+                                    <DialogContent className="min-w-[500px] overflow-auto">
                                       <DialogHeader>
                                         <DialogTitle>
                                           {selectedStudent?.name}
@@ -726,9 +737,88 @@ export function TeacherTeams() {
                         </div>
                       </div>
                       <div className="flex gap-2 justify-end">
-                        <Button size="sm" variant="outline">
-                          Adicionar aluno
-                        </Button>
+                        <Dialog
+                          open={openDialogAddStudent}
+                          onOpenChange={(isOpen) => {
+                            setOpenDialogAddStudent(isOpen)
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button variant="outline">Adicionar aluno</Button>
+                          </DialogTrigger>
+                          <DialogContent className="min-w-[500px] overflow-auto">
+                            <DialogHeader>
+                              <DialogTitle>
+                                Adicione um aluno ao time {team.name}
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-2">
+                              <Form {...formStudent}>
+                                <form
+                                  onSubmit={formStudent.handleSubmit((data) => {
+                                    const updatedData = {
+                                      ...data,
+                                      projectId: team.id,
+                                    }
+                                    onAddStudent(updatedData)
+                                  })}
+                                  className="py-4"
+                                >
+                                  <FormField
+                                    control={formStudent.control}
+                                    name="studentId"
+                                    render={({ field }) => (
+                                      <FormItem className="md:col-span-1">
+                                        <FormLabel>Aluno</FormLabel>
+                                        <SingleSelect
+                                          students={students}
+                                          onChange={(studentId) =>
+                                            field.onChange(studentId)
+                                          }
+                                          value={field.value}
+                                        />
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={formStudent.control}
+                                    name="positionId"
+                                    render={({ field }) => (
+                                      <FormItem className="md:col-span-1">
+                                        <FormLabel>Cargo</FormLabel>
+                                        <Select
+                                          value={field.value}
+                                          onValueChange={field.onChange}
+                                        >
+                                          <FormControl>
+                                            <SelectTrigger>
+                                              <SelectValue placeholder="Selecione um cargo..." />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            {positions.map((position) => (
+                                              <SelectItem
+                                                key={position.id}
+                                                value={position.id}
+                                              >
+                                                {position.name}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <DialogFooter className="-mb-4 mt-8">
+                                    <Button type="submit">Adicionar</Button>
+                                  </DialogFooter>
+                                </form>
+                              </Form>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                         <Button
                           size="sm"
                           onClick={() => generatedProjectFn(team.id)}
