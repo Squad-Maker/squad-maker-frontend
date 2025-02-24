@@ -1,6 +1,6 @@
-# Squad Maker
+# SquadMaker
 
-Este projeto faz parte da disciplina de Fábrica de Software da UTFPR-DV. O **Squad Maker** é uma ferramenta desenvolvida para facilitar a criação e organização de times, visando a realização de atividades da disciplina. A aplicação utiliza uma interface moderna e intuitiva para simplificar a interação dos usuários.
+Este projeto faz parte da disciplina de Fábrica de Software da UTFPR-DV. O **SquadMaker** é uma ferramenta desenvolvida para facilitar a criação e organização de times, visando a realização de atividades da disciplina. A aplicação utiliza uma interface moderna e intuitiva para simplificar a interação dos usuários.
 
 ## Configurando ambiente de desenvolvimento
 - Realizar fork do repositório.
