@@ -130,7 +130,7 @@ export class GrpcImpl {
   }
 }
 
-export const API_URL = `${window.location.protocol}//${window.location.host}/api` // `https://${window.location.host}/api`
+export const API_URL = `${window.location.protocol}//${import.meta.env.VITE_BASE_URL}` // `https://${window.location.host}/api`
 
 export const grpcImpl = new GrpcImpl(API_URL, {
   transport: grpc.XhrTransport({
