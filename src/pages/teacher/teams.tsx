@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { addStudentToTeam } from '@/api/add-student-to-team'
-import { createProject } from '@/api/create-project'
 import { deleteProject } from '@/api/delete-project'
 import { generateAllTeams } from '@/api/genereted-all-project'
 import { generatedProject } from '@/api/genereted-project'
@@ -16,7 +15,6 @@ import { fetchProjects } from '@/api/projects'
 import { fetchAllStudents } from '@/api/read-all-students'
 import { removeStudentFromTeam } from '@/api/remove-student-from-team'
 import { updatePositionStudent } from '@/api/update-position-student'
-import { updateProject } from '@/api/update-project'
 import { SingleSelect } from '@/components/single-select'
 import {
   Accordion,
@@ -53,7 +51,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -61,27 +58,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
 import { TeamGeneratorType } from '@/grpc/generated/squad/enum'
-import type { Project_Student as ProjectStudent } from '@/grpc/generated/squad/project'
+import type {
+  Project,
+  Project_Student as ProjectStudent,
+} from '@/grpc/generated/squad/project'
 import { queryClient } from '@/lib/react-query'
 
-const formSchemaTeam = z.object({
-  id: z.string(),
-  name: z.string().min(1, 'O nome do time é obrigatório'),
-  description: z.string().min(1, 'A descrição é obrigatória'),
-  positions: z
-    .array(
-      z.object({
-        id: z.string().min(1, 'O ID da posição é obrigatório'),
-        count: z
-          .string()
-          .regex(/^\d+$/, 'A quantidade deve ser um número válido'),
-      }),
-    )
-    .min(1, 'Pelo menos uma posição é obrigatória'),
-})
+import { DialogTeam } from './dialog-team'
 
 const formSchemaStudent = z.object({
   projectId: z.string(),
@@ -89,7 +74,6 @@ const formSchemaStudent = z.object({
   positionId: z.string().min(1, 'Selecione um cargo válido'),
 })
 
-type FormValuesTeam = z.infer<typeof formSchemaTeam>
 type FormValuesStudent = z.infer<typeof formSchemaStudent>
 
 export function TeacherTeams() {
@@ -98,19 +82,22 @@ export function TeacherTeams() {
   const [selectedStudent, setSelectedStudent] = useState<ProjectStudent | null>(
     null,
   )
+  const [teamEditing, setTeamEditing] = useState<Project>()
   const [openDialogTeam, setOpenDialogTeam] = useState<boolean>(false)
   const [openDialogStudent, setOpenDialogStudent] = useState<boolean>(false)
   const [openDialogAddStudent, setOpenDialogAddStudent] =
     useState<boolean>(false)
-  const [isEditing, setIsEditing] = useState<boolean>(false)
 
-  const formTeam = useForm<FormValuesTeam>({
-    resolver: zodResolver(formSchemaTeam),
-    defaultValues: {
-      name: '',
-      description: '',
-      positions: [{ id: '', count: '' }],
-    },
+  const { data: teams = [] } = useQuery({
+    queryKey: ['teams'],
+    queryFn: fetchProjects,
+    retry: false,
+  })
+
+  const { data: positions = [], isPending: isPositionsPending } = useQuery({
+    queryKey: ['positions'],
+    queryFn: fetchPositions,
+    retry: false,
   })
 
   const formStudent = useForm<FormValuesStudent>({
@@ -122,85 +109,17 @@ export function TeacherTeams() {
     },
   })
 
-  const { data: teams = [] } = useQuery({
-    queryKey: ['teams'],
-    queryFn: fetchProjects,
-    retry: false,
-  })
-
-  const { data: positions = [] } = useQuery({
-    queryKey: ['positions'],
-    queryFn: fetchPositions,
-    retry: false,
-  })
-
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
     queryFn: () =>
-      fetchAllStudents({
+      fetchAllStudents(/* {
         simple: {
           filterKey: 'inProject',
           value: 'false',
           operator: 0,
         },
-      }),
+      } */),
     retry: false,
-  })
-
-  const { mutate: createProjectFn } = useMutation({
-    mutationFn: async (data: FormValuesTeam) => {
-      await createProject({
-        name: data.name,
-        description: data.description,
-        positions: data.positions,
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] })
-
-      setOpenDialogTeam(false)
-
-      formTeam.reset()
-
-      toast({
-        title: 'Times',
-        description: 'Time gerado com sucesso!',
-      })
-    },
-    onError: () => {
-      toast({
-        title: 'Ooops!',
-        variant: 'destructive',
-        description: 'Ocorreu um problema ao gerar o time, tente novamente.',
-      })
-    },
-  })
-
-  const { mutate: updateProjectFn } = useMutation({
-    mutationFn: async (data: FormValuesTeam) => {
-      await updateProject({
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        positions: data.positions,
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] })
-
-      setOpenDialogTeam(false)
-
-      formTeam.reset()
-
-      toast({ title: 'Time', description: 'Time atualizado com sucesso!' })
-    },
-    onError: () => {
-      toast({
-        title: 'Ooops!',
-        variant: 'destructive',
-        description: 'Ocorreu um problema ao editar o time, tente novamente.',
-      })
-    },
   })
 
   const { mutate: generatedProjectFn } = useMutation({
@@ -215,6 +134,7 @@ export function TeacherTeams() {
         title: 'Times',
         description: 'Time gerado com sucesso!',
       })
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
     },
     onError: () => {
       toast({
@@ -356,29 +276,6 @@ export function TeacherTeams() {
     },
   })
 
-  const onSubmitTeam = (data: FormValuesTeam) => {
-    if (data.id) {
-      updateProjectFn(data)
-    } else {
-      createProjectFn(data)
-    }
-  }
-
-  const onEditTeam = (data: FormValuesTeam) => {
-    const formattedPositions = data.positions.map((position) => ({
-      id: position.id,
-      count: position.count,
-    }))
-
-    formTeam.setValue('id', data.id)
-    formTeam.setValue('name', data.name)
-    formTeam.setValue('description', data.description)
-    formTeam.setValue('positions', formattedPositions)
-
-    setIsEditing(true)
-    setOpenDialogTeam(true)
-  }
-
   const onUpdateStudent = (data: FormValuesStudent) => {
     updateStudentFn(data)
   }
@@ -386,10 +283,6 @@ export function TeacherTeams() {
   const onAddStudent = (data: FormValuesStudent) => {
     addStudentFromTeamFn(data)
   }
-
-  const totalPositions = formTeam
-    .watch('positions')
-    .reduce((acc, curr) => acc + Number(curr?.count || 0), 0)
 
   return (
     <>
@@ -405,132 +298,27 @@ export function TeacherTeams() {
               Crie e gerencie seus times e membros
             </p>
           </div>
-          <Dialog
-            open={openDialogTeam}
-            onOpenChange={(isOpen) => {
-              setOpenDialogTeam(isOpen)
 
-              if (!isOpen) {
-                formTeam.reset({
-                  id: '',
-                  name: '',
-                  description: '',
-                  positions: positions.map((p) => ({ id: p.id, count: '' })),
-                })
-                setIsEditing(false)
-              }
+          <Button
+            size="lg"
+            className="gap-2"
+            onClick={() => {
+              setTeamEditing(undefined)
+              setOpenDialogTeam(true)
             }}
           >
-            <DialogTrigger className="z-10" asChild>
-              <Button size="lg" className="gap-2">
-                <Plus className="size-4" /> Novo time
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="lg:min-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {isEditing ? 'Editar time' : 'Crie um novo time'}
-                </DialogTitle>
-                <DialogDescription>
-                  {isEditing
-                    ? 'Edite as informações do time e adicione ou remova membros'
-                    : 'Preencha as informações do time'}
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...formTeam}>
-                <form
-                  onSubmit={formTeam.handleSubmit(onSubmitTeam)}
-                  className="flex flex-col gap-4 py-2"
-                >
-                  <FormField
-                    control={formTeam.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Digite o nome do time..."
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={formTeam.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            className="resize-none"
-                            placeholder="Digite a descrição do time..."
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    {positions.map((position) => {
-                      const existingPosition = formTeam
-                        .watch('positions')
-                        .find((p) => p?.id === position.id) || { count: '' }
-
-                      return (
-                        <FormField
-                          key={position.id}
-                          control={formTeam.control}
-                          name={`positions.${positions.findIndex((p) => p.id === position.id)}`}
-                          render={() => (
-                            <FormItem>
-                              <FormLabel>{position.name}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Quantidade de vagas..."
-                                  type="number"
-                                  min="1"
-                                  value={existingPosition.count}
-                                  onChange={(e) => {
-                                    const updatedPositions = formTeam
-                                      .getValues('positions')
-                                      .map((p) => {
-                                        if (p?.id === position.id) {
-                                          return { ...p, count: e.target.value }
-                                        }
-                                        return p
-                                      })
-
-                                    formTeam.setValue(
-                                      'positions',
-                                      updatedPositions,
-                                    )
-                                  }}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )
-                    })}
-                  </div>
-                  <DialogFooter className="flex items-center justify-between w-full mt-4">
-                    <span className="flex-1 text-sm text-muted-foreground">
-                      Total de vagas no time:{' '}
-                      <span className="font-medium text-primary">
-                        {totalPositions}
-                      </span>
-                    </span>
-                    <Button type="submit">
-                      {isEditing ? 'Salvar alterações' : 'Criar time'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+            <Plus className="size-4" /> Novo time
+          </Button>
+          {!isPositionsPending && openDialogTeam && (
+            <DialogTeam
+              team={teamEditing}
+              positions={positions}
+              shouldClose={() => {
+                setTeamEditing(undefined)
+                setOpenDialogTeam(false)
+              }}
+            />
+          )}
         </div>
         <div className="py-6">
           <div>
@@ -549,7 +337,8 @@ export function TeacherTeams() {
                             onClick={(e) => {
                               e.stopPropagation()
 
-                              onEditTeam(team)
+                              setTeamEditing(team)
+                              setOpenDialogTeam(true)
                             }}
                           >
                             <Pen className="size-4" />
