@@ -477,7 +477,7 @@ export function TeacherTeams() {
                     {positions.map((position) => {
                       const existingPosition = formTeam
                         .watch('positions')
-                        .find((p) => p?.id === position.id) || { count: '0' }
+                        .find((p) => p?.id === position.id) || { count: '' }
 
                       return (
                         <FormField
@@ -497,7 +497,7 @@ export function TeacherTeams() {
                                     const updatedPositions = formTeam
                                       .getValues('positions')
                                       .map((p) => {
-                                        if (p.id === position.id) {
+                                        if (p?.id === position.id) {
                                           return { ...p, count: e.target.value }
                                         }
                                         return p
