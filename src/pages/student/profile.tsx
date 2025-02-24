@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { LoaderCircleIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -88,6 +89,22 @@ export function StudentProfile() {
     },
   })
 
+  // Quando positionOption1 mudar, se for igual a positionOption2, limpar positionOption2
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'positionOption1') {
+        const positionOption1 = value.positionOption1
+        const positionOption2 = value.positionOption2
+
+        if (positionOption1 && positionOption1 === positionOption2) {
+          form.setValue('positionOption2', '', { shouldValidate: true })
+        }
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form])
+
   const { mutate: updateProfileFn, isPending: isSubmitting } = useMutation({
     mutationFn: async (data: FormValues) => {
       await updateProfile({
@@ -109,7 +126,7 @@ export function StudentProfile() {
         title: 'Ooops!',
         variant: 'destructive',
         description:
-          'Ocorreu um problema ao tentar atualizar seu perifl, tente novamente.',
+          'Ocorreu um problema ao tentar atualizar seu perfil, tente novamente.',
       })
     },
   })
@@ -117,6 +134,12 @@ export function StudentProfile() {
   const onSubmit = async (values: FormValues) => {
     updateProfileFn(values)
   }
+
+  const selectedPosition1 = form.watch('positionOption1')
+
+  const filteredPositionsForOption2 = positions.filter(
+    (position) => position.id !== selectedPosition1,
+  )
 
   if (isLoading) {
     return (
@@ -263,7 +286,7 @@ export function StudentProfile() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {positions.map((position) => (
+                            {filteredPositionsForOption2.map((position) => (
                               <SelectItem key={position.id} value={position.id}>
                                 {position.name}
                               </SelectItem>

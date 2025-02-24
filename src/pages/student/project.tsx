@@ -168,7 +168,7 @@ export function StudentProject() {
           )
         )}
 
-        <div className="grid grid-cols-2 gap-4 py-8">
+        <div className="grid md:grid-cols-2 gap-4 py-8">
           {studentProjects.map((project) => (
             <div
               key={project.id}
@@ -179,7 +179,7 @@ export function StudentProject() {
                   <p className="font-medium pb-4 text-xl">{project.name}</p>
                   <p>{project.description}</p>
                   <div className="mt-4">
-                    <p className="font-bold text-sm">Colaboradores:</p>
+                    <p className="font-medium text-sm">Colaboradores:</p>
                     <div className="py-2">
                       {project.students.map((student) => (
                         <p key={student.id}>

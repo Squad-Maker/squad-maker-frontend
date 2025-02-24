@@ -597,7 +597,7 @@ export function TeacherTeams() {
                     <AccordionContent>
                       <p>{team.description}</p>
                       <div className="mt-4">
-                        <p className="font-bold">Colaboradores:</p>
+                        <p className="font-medium">Colaboradores:</p>
                         <div className="py-2">
                           {team.students.length === 0 ? (
                             <p className="text-muted-foreground">
@@ -763,7 +763,8 @@ export function TeacherTeams() {
                                     </DialogContent>
                                   </Dialog>
                                 </span>{' '}
-                                • {student.positionName}
+                                • {student.positionName}{' '}
+                                {student.competenceLevelName}
                               </p>
                             ))
                           )}
