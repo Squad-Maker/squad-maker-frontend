@@ -63,6 +63,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
+import { TeamGeneratorType } from '@/grpc/generated/squad/enum'
 import type { Project_Student as ProjectStudent } from '@/grpc/generated/squad/project'
 import { queryClient } from '@/lib/react-query'
 
@@ -206,6 +207,7 @@ export function TeacherTeams() {
     mutationFn: async (projectId?: string) => {
       await generatedProject({
         projectId,
+        generatorType: TeamGeneratorType.tgtDefault,
       })
     },
     onSuccess: () => {
@@ -387,7 +389,7 @@ export function TeacherTeams() {
 
   const totalPositions = formTeam
     .watch('positions')
-    .reduce((acc, curr) => acc + Number(curr.count || 0), 0)
+    .reduce((acc, curr) => acc + Number(curr?.count || 0), 0)
 
   return (
     <>
@@ -475,7 +477,7 @@ export function TeacherTeams() {
                     {positions.map((position) => {
                       const existingPosition = formTeam
                         .watch('positions')
-                        .find((p) => p.id === position.id) || { count: '' }
+                        .find((p) => p?.id === position.id) || { count: '0' }
 
                       return (
                         <FormField
