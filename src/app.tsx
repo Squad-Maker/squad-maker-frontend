@@ -13,7 +13,7 @@ export function App() {
   return (
     <HelmetProvider>
       <ThemeProvider defaultTheme="light" storageKey="squad-maker-theme">
-        <Helmet titleTemplate="%s | Squad Maker" />
+        <Helmet titleTemplate="%s | SquadMaker" />
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
           <Toaster />
