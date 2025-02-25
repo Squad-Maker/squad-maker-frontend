@@ -301,7 +301,7 @@ export function TeacherTeams() {
 
           <Button
             size="lg"
-            className="gap-2"
+            className="gap-2 z-10"
             onClick={() => {
               setTeamEditing(undefined)
               setOpenDialogTeam(true)
