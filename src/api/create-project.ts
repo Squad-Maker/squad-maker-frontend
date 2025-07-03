@@ -5,11 +5,15 @@ export async function createProject({
   name,
   description,
   positions,
+  competenceLevels,
+  tools,
 }: CreateProjectRequest) {
   const response = await squadServiceClient.createProject({
     name,
     description,
     positions,
+    competenceLevels,
+    tools,
   })
 
   return response

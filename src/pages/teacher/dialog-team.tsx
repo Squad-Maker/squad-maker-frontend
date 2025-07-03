@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { fetchCompetenceLevels } from '@/api/competence-levels'
 import { createProject } from '@/api/create-project'
 import { updateProject } from '@/api/update-project'
 import { Button } from '@/components/ui/button'
@@ -11,7 +12,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -25,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
+import { CompetenceLevel } from '@/grpc/generated/squad/competence-level'
 import { Position } from '@/grpc/generated/squad/position'
 import { Project } from '@/grpc/generated/squad/project'
 import { queryClient } from '@/lib/react-query'
@@ -43,6 +44,23 @@ const formSchemaTeam = z.object({
       }),
     )
     .min(1, 'Pelo menos uma posição é obrigatória'),
+  tools: z.array(z.string()).optional(),
+  competenceLevels: z
+    .array(
+      z.object({
+        id: z.string(),
+        count: z
+          .preprocess(
+            (val) => (val === '' ? undefined : val),
+            z.coerce.number({
+              invalid_type_error: 'Valor inválido',
+            }),
+          )
+          .refine(Number.isInteger, 'O valor deve ser um número inteiro.')
+          .optional(),
+      }),
+    )
+    .optional(),
 })
 
 type FormValuesTeam = z.infer<typeof formSchemaTeam>
@@ -56,15 +74,27 @@ interface DialogTeamProps {
 export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [competenceLevels, setCompetenceLevels] = useState<CompetenceLevel[]>(
+    [],
+  )
 
   const formTeam = useForm<FormValuesTeam>({
     resolver: zodResolver(formSchemaTeam),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       description: '',
-      positions: positions.map((p) => ({ id: p.id, count: '' })),
+      positions: [],
+      tools: [],
+      competenceLevels: [],
     },
   })
+
+  useEffect(() => {
+    fetchCompetenceLevels().then((res) => {
+      setCompetenceLevels(res)
+    })
+  }, [])
 
   const { mutate: createProjectFn } = useMutation({
     mutationFn: async (data: FormValuesTeam) => {
@@ -74,6 +104,14 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
         positions: data.positions.map((p) => ({
           id: p.id,
           count: p.count || '0',
+        })),
+        tools: data.tools ?? [],
+        competenceLevels: (data.competenceLevels ?? []).map((c) => ({
+          id: c.id,
+          count:
+            typeof c.count === 'number' && !isNaN(c.count)
+              ? String(c.count)
+              : '0',
         })),
       })
     },
@@ -108,6 +146,14 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
           id: p.id,
           count: p.count || '0',
         })),
+        tools: data.tools ?? [],
+        competenceLevels: (data.competenceLevels ?? []).map((c) => ({
+          id: c.id,
+          count:
+            typeof c.count === 'number' && !isNaN(c.count)
+              ? String(c.count)
+              : '0',
+        })),
       })
     },
     onSuccess: () => {
@@ -129,7 +175,6 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
     },
   })
   const onSubmitTeam = (data: FormValuesTeam) => {
-    console.log(data)
     if (data.id) {
       updateProjectFn(data)
     } else {
@@ -139,6 +184,7 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
 
   useEffect(() => {
     if (team) {
+      // Garante que positions seja preenchido corretamente ao editar
       const formattedPositions = positions.map((position) => {
         const positionData = team.positions.find((p) => p?.id === position.id)
         return {
@@ -147,10 +193,29 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
         }
       })
 
-      formTeam.setValue('id', team.id)
-      formTeam.setValue('name', team.name)
-      formTeam.setValue('description', team.description)
-      formTeam.setValue('positions', formattedPositions)
+      formTeam.reset({
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        positions: formattedPositions,
+        tools: Array.isArray(team.tools)
+          ? team.tools
+          : team.tools
+            ? String(team.tools)
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        competenceLevels: team.competenceLevels
+          ? team.competenceLevels.map((c) => ({
+              id: c.id,
+              count:
+                c.count === undefined || c.count === ''
+                  ? undefined
+                  : Number(c.count),
+            }))
+          : [],
+      })
 
       setIsEditing(true)
     }
@@ -159,6 +224,15 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
   const totalPositions = formTeam
     .watch('positions')
     .reduce((acc, curr) => acc + Number(curr?.count || 0), 0)
+
+  const isSubmitEnabled = (() => {
+    const competenceLevelsValues = formTeam.watch('competenceLevels') ?? []
+    const totalSeniority = competenceLevelsValues.reduce(
+      (acc, v) => acc + Number(v?.count || 0),
+      0,
+    )
+    return totalSeniority === totalPositions && !formTeam.formState.isSubmitting
+  })()
 
   return (
     <Dialog
@@ -170,6 +244,7 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
             name: '',
             description: '',
             positions: positions.map((p) => ({ id: p.id, count: '' })),
+            competenceLevels: [],
           })
           setIsEditing(false)
 
@@ -177,7 +252,7 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
         }
       }}
     >
-      <DialogContent className="lg:min-w-[600px]">
+      <DialogContent className="w-full max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Editar time' : 'Crie um novo time'}
@@ -188,98 +263,219 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
               : 'Preencha as informações do time'}
           </DialogDescription>
         </DialogHeader>
-        <Form {...formTeam}>
-          <div className="flex flex-col gap-4 py-2">
-            <FormField
-              control={formTeam.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Digite o nome do time..." />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formTeam.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      className="resize-none"
-                      placeholder="Digite a descrição do time..."
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              {positions.map((position, index) => {
-                const existingPosition = formTeam
-                  .watch('positions')
-                  .find((p) => p?.id === position.id) || { count: '' }
-
-                return (
-                  <FormField
-                    key={position.id}
-                    control={formTeam.control}
-                    name={`positions.${index}`}
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>{position.name}</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Quantidade de vagas..."
-                            type="number"
-                            value={existingPosition.count}
-                            onChange={(e) => {
-                              const updatedPositions =
-                                formTeam.getValues('positions')
-                              const formPosition = updatedPositions.find(
-                                (p) => p?.id === position.id,
-                              )
-                              if (formPosition) {
-                                formPosition.count = e.target.value ?? ''
-                              } else {
-                                updatedPositions.push({
-                                  id: position.id,
-                                  count: e.target.value,
-                                })
+        <form onSubmit={formTeam.handleSubmit(onSubmitTeam)}>
+          <Form {...formTeam}>
+            <div className="flex flex-col gap-4 py-2">
+              <FormField
+                control={formTeam.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Digite o nome do time..."
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formTeam.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        className="resize-none"
+                        placeholder="Digite a descrição do time..."
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formTeam.control}
+                name="tools"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      Ferramentas de domínio
+                      <span
+                        className="text-gray-400 cursor-help"
+                        title="Aqui você pode adicionar múltiplas ferramentas do seu time. Digite o nome e pressione Enter para criar cada tag."
+                      >
+                        ⓘ
+                      </span>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="flex flex-col gap-2 w-full">
+                        <Input
+                          type="text"
+                          placeholder="go, postgres, react, jira, vscode..."
+                          className="w-full"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const input = e.currentTarget
+                              const value = input.value.trim()
+                              if (value && !field.value?.includes(value)) {
+                                const updated = [...(field.value ?? []), value]
+                                formTeam.setValue('tools', updated)
+                                input.value = ''
                               }
+                            }
+                          }}
+                        />
+                        <div className="flex flex-wrap gap-2 w-full overflow-y-auto max-h-24 pr-2">
+                          {(field.value ?? []).map(
+                            (tool: string, idx: number) => (
+                              <div
+                                key={idx}
+                                className="px-2 py-1 bg-muted rounded text-sm flex items-center gap-1 break-words"
+                              >
+                                {tool}
+                                <button
+                                  type="button"
+                                  className="ml-1 text-red-500 hover:text-red-700"
+                                  onClick={() => {
+                                    const updated = (field.value ?? []).filter(
+                                      (t: string) => t !== tool,
+                                    )
+                                    formTeam.setValue('tools', updated)
+                                  }}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                {positions.map((position) => {
+                  const existingPosition = formTeam
+                    .watch('positions')
+                    .find((p) => p?.id === position.id) || { count: '' }
 
-                              formTeam.setValue('positions', updatedPositions)
-                            }}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                )
-              })}
-            </div>
-            <DialogFooter className="flex items-center justify-between w-full mt-4">
-              <span className="flex-1 text-sm text-muted-foreground">
-                Total de vagas no time:{' '}
-                <span className="font-medium text-primary">
-                  {totalPositions}
+                  // Garante que a posição exista no formulário:
+                  if (
+                    !formTeam
+                      .getValues('positions')
+                      .some((p) => p.id === position.id)
+                  ) {
+                    const updated = [
+                      ...formTeam.getValues('positions'),
+                      { id: position.id, count: '' },
+                    ]
+                    formTeam.setValue('positions', updated)
+                  }
+
+                  return (
+                    <FormField
+                      key={position.id}
+                      control={formTeam.control}
+                      name="positions"
+                      render={() => (
+                        <FormItem>
+                          <FormLabel>{position.name}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Quantidade de vagas..."
+                              type="number"
+                              value={existingPosition.count}
+                              onChange={(e) => {
+                                const updatedPositions = formTeam
+                                  .getValues('positions')
+                                  .map((p) =>
+                                    p.id === position.id
+                                      ? { ...p, count: e.target.value ?? '' }
+                                      : p,
+                                  )
+                                formTeam.setValue('positions', updatedPositions)
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  )
+                })}
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                {competenceLevels.map((level, idx) => {
+                  const fieldName = `competenceLevels.${idx}.count` as const
+                  const values = formTeam.getValues('competenceLevels') ?? []
+                  if (!(values[idx] && values[idx].id === level.id)) {
+                    const newValues = [...values]
+                    newValues[idx] = { id: level.id, count: undefined }
+                    formTeam.setValue('competenceLevels', newValues)
+                  }
+                  const currentValue =
+                    values[idx]?.count === undefined
+                      ? ''
+                      : values[idx]?.count.toString()
+                  return (
+                    <FormField
+                      key={level.id}
+                      control={formTeam.control}
+                      name={fieldName}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{level.name}</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder={`Qtd de ${level.name}`}
+                              type="number"
+                              value={currentValue}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                const numberValue =
+                                  value === '' ? undefined : Number(value)
+                                const updated = [
+                                  ...(formTeam.getValues('competenceLevels') ??
+                                    []),
+                                ]
+                                updated[idx] = {
+                                  id: level.id,
+                                  count: numberValue,
+                                }
+                                formTeam.setValue('competenceLevels', updated, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                })
+                                field.onChange(e)
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  )
+                })}
+              </div>
+              <div className="flex items-center justify-between w-full mt-4">
+                <span className="flex-1 text-sm text-muted-foreground">
+                  Total de vagas no time:{' '}
+                  <span className="font-medium text-primary">
+                    {totalPositions}
+                  </span>
                 </span>
-              </span>
-              <Button
-                type="button"
-                onClick={() => {
-                  formTeam.handleSubmit(onSubmitTeam)()
-                }}
-              >
-                {isEditing ? 'Salvar alterações' : 'Criar time'}
-              </Button>
-            </DialogFooter>
-          </div>
-        </Form>
+                <Button type="submit" disabled={!isSubmitEnabled}>
+                  {isEditing ? 'Salvar alterações' : 'Criar time'}
+                </Button>
+              </div>
+            </div>
+          </Form>
+        </form>
       </DialogContent>
     </Dialog>
   )
