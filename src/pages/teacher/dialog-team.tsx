@@ -175,8 +175,6 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
     },
   })
   const onSubmitTeam = (data: FormValuesTeam) => {
-    console.log('Enviando para o backend:', data)
-
     if (data.id) {
       updateProjectFn(data)
     } else {
@@ -414,9 +412,7 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
               <div className="grid grid-cols-3 gap-4">
                 {competenceLevels.map((level, idx) => {
                   const fieldName = `competenceLevels.${idx}.count` as const
-                  // Use a single getValues for competenceLevels
                   const values = formTeam.getValues('competenceLevels') ?? []
-                  // Only update if not already set correctly
                   if (!(values[idx] && values[idx].id === level.id)) {
                     const newValues = [...values]
                     newValues[idx] = { id: level.id, count: undefined }
