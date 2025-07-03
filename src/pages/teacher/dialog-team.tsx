@@ -105,6 +105,14 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
           id: p.id,
           count: p.count || '0',
         })),
+        tools: data.tools ?? [],
+        competenceLevels: (data.competenceLevels ?? []).map((c) => ({
+          id: c.id,
+          count:
+            typeof c.count === 'number' && !isNaN(c.count)
+              ? String(c.count)
+              : '0',
+        })),
       })
     },
     onSuccess: () => {
@@ -137,6 +145,14 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
         positions: data.positions.map((p) => ({
           id: p.id,
           count: p.count || '0',
+        })),
+        tools: data.tools ?? [],
+        competenceLevels: (data.competenceLevels ?? []).map((c) => ({
+          id: c.id,
+          count:
+            typeof c.count === 'number' && !isNaN(c.count)
+              ? String(c.count)
+              : '0',
         })),
       })
     },
@@ -192,7 +208,15 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
                 .map((t) => t.trim())
                 .filter(Boolean)
             : [],
-        competenceLevels: team.competence_levels ?? [],
+        competenceLevels: team.competenceLevels
+          ? team.competenceLevels.map((c) => ({
+              id: c.id,
+              count:
+                c.count === undefined || c.count === ''
+                  ? undefined
+                  : Number(c.count),
+            }))
+          : [],
       })
 
       setIsEditing(true)
@@ -338,16 +362,29 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
                 )}
               />
               <div className="grid grid-cols-2 gap-4">
-                {positions.map((position, index) => {
+                {positions.map((position) => {
                   const existingPosition = formTeam
                     .watch('positions')
                     .find((p) => p?.id === position.id) || { count: '' }
+
+                  // Garante que a posição exista no formulário:
+                  if (
+                    !formTeam
+                      .getValues('positions')
+                      .some((p) => p.id === position.id)
+                  ) {
+                    const updated = [
+                      ...formTeam.getValues('positions'),
+                      { id: position.id, count: '' },
+                    ]
+                    formTeam.setValue('positions', updated)
+                  }
 
                   return (
                     <FormField
                       key={position.id}
                       control={formTeam.control}
-                      name={`positions.${index}`}
+                      name="positions"
                       render={() => (
                         <FormItem>
                           <FormLabel>{position.name}</FormLabel>
@@ -357,20 +394,13 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
                               type="number"
                               value={existingPosition.count}
                               onChange={(e) => {
-                                const updatedPositions =
-                                  formTeam.getValues('positions')
-                                const formPosition = updatedPositions.find(
-                                  (p) => p?.id === position.id,
-                                )
-                                if (formPosition) {
-                                  formPosition.count = e.target.value ?? ''
-                                } else {
-                                  updatedPositions.push({
-                                    id: position.id,
-                                    count: e.target.value,
-                                  })
-                                }
-
+                                const updatedPositions = formTeam
+                                  .getValues('positions')
+                                  .map((p) =>
+                                    p.id === position.id
+                                      ? { ...p, count: e.target.value ?? '' }
+                                      : p,
+                                  )
                                 formTeam.setValue('positions', updatedPositions)
                               }}
                             />
@@ -393,9 +423,9 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
                     formTeam.setValue('competenceLevels', newValues)
                   }
                   const currentValue =
-                    values[idx]?.count === 0
+                    values[idx]?.count === undefined
                       ? ''
-                      : (values[idx]?.count?.toString() ?? '')
+                      : values[idx]?.count.toString()
                   return (
                     <FormField
                       key={level.id}
@@ -409,21 +439,25 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
                               {...field}
                               placeholder={`Qtd de ${level.name}`}
                               type="number"
+                              value={currentValue}
                               onChange={(e) => {
                                 const value = e.target.value
+                                const numberValue =
+                                  value === '' ? undefined : Number(value)
                                 const updated = [
                                   ...(formTeam.getValues('competenceLevels') ??
                                     []),
                                 ]
                                 updated[idx] = {
                                   id: level.id,
-                                  count:
-                                    value === '' ? undefined : Number(value),
+                                  count: numberValue,
                                 }
-                                formTeam.setValue('competenceLevels', updated)
+                                formTeam.setValue('competenceLevels', updated, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                })
                                 field.onChange(e)
                               }}
-                              value={currentValue}
                             />
                           </FormControl>
                         </FormItem>

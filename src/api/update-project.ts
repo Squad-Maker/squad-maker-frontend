@@ -6,12 +6,16 @@ export async function updateProject({
   name,
   description,
   positions,
+  competenceLevels,
+  tools,
 }: UpdateProjectRequest) {
   const response = await squadServiceClient.updateProject({
     id,
     name,
     description,
     positions,
+    competenceLevels,
+    tools,
   })
 
   return response
