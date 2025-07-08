@@ -45,22 +45,14 @@ const formSchemaTeam = z.object({
     )
     .min(1, 'Pelo menos uma posição é obrigatória'),
   tools: z.array(z.string()).optional(),
-  competenceLevels: z
-    .array(
-      z.object({
-        id: z.string(),
-        count: z
-          .preprocess(
-            (val) => (val === '' ? undefined : val),
-            z.coerce.number({
-              invalid_type_error: 'Valor inválido',
-            }),
-          )
-          .refine(Number.isInteger, 'O valor deve ser um número inteiro.')
-          .optional(),
-      }),
-    )
-    .optional(),
+  competenceLevels: z.array(
+    z.object({
+      id: z.string().min(1, 'O ID da senioridade é obrigatório'),
+      count: z
+        .string()
+        .regex(/^\d*$/, 'A quantidade deve ser um número válido'),
+    }),
+  ),
 })
 
 type FormValuesTeam = z.infer<typeof formSchemaTeam>
@@ -108,10 +100,7 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
         tools: data.tools ?? [],
         competenceLevels: (data.competenceLevels ?? []).map((c) => ({
           id: c.id,
-          count:
-            typeof c.count === 'number' && !isNaN(c.count)
-              ? String(c.count)
-              : '0',
+          count: c.count || '0',
         })),
       })
     },
@@ -144,15 +133,12 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
         description: data.description,
         positions: data.positions.map((p) => ({
           id: p.id,
-          count: p.count || '0',
+          count: (+p.count || 0) + '',
         })),
         tools: data.tools ?? [],
         competenceLevels: (data.competenceLevels ?? []).map((c) => ({
           id: c.id,
-          count:
-            typeof c.count === 'number' && !isNaN(c.count)
-              ? String(c.count)
-              : '0',
+          count: (+c.count || 0) + '',
         })),
       })
     },
@@ -209,10 +195,7 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
         competenceLevels: team.competenceLevels
           ? team.competenceLevels.map((c) => ({
               id: c.id,
-              count:
-                c.count === undefined || c.count === ''
-                  ? undefined
-                  : Number(c.count),
+              count: c.count || '',
             }))
           : [],
       })
@@ -231,7 +214,7 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
       (acc, v) => acc + Number(v?.count || 0),
       0,
     )
-    return totalSeniority === totalPositions && !formTeam.formState.isSubmitting
+    return totalSeniority <= totalPositions && !formTeam.formState.isSubmitting
   })()
 
   return (
@@ -410,49 +393,49 @@ export function DialogTeam({ team, positions, shouldClose }: DialogTeamProps) {
                 })}
               </div>
               <div className="grid grid-cols-3 gap-4">
-                {competenceLevels.map((level, idx) => {
-                  const fieldName = `competenceLevels.${idx}.count` as const
-                  const values = formTeam.getValues('competenceLevels') ?? []
-                  if (!(values[idx] && values[idx].id === level.id)) {
-                    const newValues = [...values]
-                    newValues[idx] = { id: level.id, count: undefined }
-                    formTeam.setValue('competenceLevels', newValues)
+                {competenceLevels.map((competenceLevel) => {
+                  const existingCompetenceLevel = formTeam
+                    .watch('competenceLevels')
+                    .find((p) => p?.id === competenceLevel.id) || { count: '' }
+
+                  // Garante que a posição exista no formulário:
+                  if (
+                    !formTeam
+                      .getValues('competenceLevels')
+                      .some((p) => p.id === competenceLevel.id)
+                  ) {
+                    const updated = [
+                      ...formTeam.getValues('competenceLevels'),
+                      { id: competenceLevel.id, count: '' },
+                    ]
+                    formTeam.setValue('competenceLevels', updated)
                   }
-                  const currentValue =
-                    values[idx]?.count === undefined
-                      ? ''
-                      : values[idx]?.count.toString()
+
                   return (
                     <FormField
-                      key={level.id}
+                      key={competenceLevel.id}
                       control={formTeam.control}
-                      name={fieldName}
-                      render={({ field }) => (
+                      name="competenceLevels"
+                      render={() => (
                         <FormItem>
-                          <FormLabel>{level.name}</FormLabel>
+                          <FormLabel>{competenceLevel.name}</FormLabel>
                           <FormControl>
                             <Input
-                              {...field}
-                              placeholder={`Qtd de ${level.name}`}
+                              placeholder="Quantidade de vagas..."
                               type="number"
-                              value={currentValue}
+                              value={existingCompetenceLevel.count}
                               onChange={(e) => {
-                                const value = e.target.value
-                                const numberValue =
-                                  value === '' ? undefined : Number(value)
-                                const updated = [
-                                  ...(formTeam.getValues('competenceLevels') ??
-                                    []),
-                                ]
-                                updated[idx] = {
-                                  id: level.id,
-                                  count: numberValue,
-                                }
-                                formTeam.setValue('competenceLevels', updated, {
-                                  shouldValidate: true,
-                                  shouldDirty: true,
-                                })
-                                field.onChange(e)
+                                const updatedCompetenceLevels = formTeam
+                                  .getValues('competenceLevels')
+                                  .map((p) =>
+                                    p.id === competenceLevel.id
+                                      ? { ...p, count: e.target.value ?? '' }
+                                      : p,
+                                  )
+                                formTeam.setValue(
+                                  'competenceLevels',
+                                  updatedCompetenceLevels,
+                                )
                               }}
                             />
                           </FormControl>
