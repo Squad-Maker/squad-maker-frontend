@@ -126,7 +126,7 @@ export function TeacherTeams() {
     mutationFn: async (projectId?: string) => {
       await generatedProject({
         projectId,
-        generatorType: TeamGeneratorType.tgtDefault,
+        generatorType: TeamGeneratorType.tgtGeneticAlgorithm,
       })
     },
     onSuccess: () => {
