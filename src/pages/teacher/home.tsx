@@ -81,9 +81,11 @@ export function TeacherHome() {
                   <TableHead>Nome</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead>Senioridade</TableHead>
+                  <TableHead>Opção de Cargo 1</TableHead>
+                  <TableHead>Opção de Cargo 2</TableHead>
+                  <TableHead>Projeto</TableHead>
                   <TableHead>Cargo</TableHead>
                   <TableHead>Ferramentas</TableHead>
-                  <TableHead>Projeto</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -93,11 +95,7 @@ export function TeacherHome() {
                     <TableCell>{student.email || 'N/A'}</TableCell>
                     <TableCell>{student.competenceLevelName}</TableCell>
                     <TableCell>{student.positionOption1Name}</TableCell>
-                    <TableCell title={student.tools.join(', ')}>
-                      {student.tools.join(', ').length > 30
-                        ? `${student.tools.join(', ').slice(0, 30)}...`
-                        : student.tools.join(', ')}
-                    </TableCell>
+                    <TableCell>{student.positionOption2Name}</TableCell>
 
                     <TableCell>
                       {student.inProjects.length > 0 ? (
@@ -107,6 +105,20 @@ export function TeacherHome() {
                       ) : (
                         <span className="text-red-500 font-medium">Nenhum</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      {student.inProjects.length > 0 ? (
+                        student.inProjects
+                          .map((project) => project.positionName)
+                          .join(', ')
+                      ) : (
+                        <span className="text-red-500 font-medium">Nenhum</span>
+                      )}
+                    </TableCell>
+                    <TableCell title={student.tools.join(', ')}>
+                      {student.tools.join(', ').length > 30
+                        ? `${student.tools.join(', ').slice(0, 30)}...`
+                        : student.tools.join(', ')}
                     </TableCell>
                   </TableRow>
                 ))}
